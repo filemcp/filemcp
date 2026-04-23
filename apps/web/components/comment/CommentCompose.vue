@@ -15,13 +15,15 @@ const anonName = ref('')
 const anonEmail = ref('')
 const submitting = ref(false)
 const nudge = ref<{ message: string; signupUrl: string } | null>(null)
+const errors = ref({ body: false, anonName: false })
 
 const left = computed(() => `${Math.min(props.anchor.xPct * 100, 75)}%`)
 const top = computed(() => `${Math.min(props.anchor.yPct * 100, 80)}%`)
 
 async function submit() {
-  if (!body.value.trim()) return
-  if (!auth.isAuthenticated && !anonName.value.trim()) return
+  errors.value.body = !body.value.trim()
+  errors.value.anonName = !auth.isAuthenticated && !anonName.value.trim()
+  if (errors.value.body || errors.value.anonName) return
   submitting.value = true
   try {
     const payload: any = {
@@ -91,15 +93,19 @@ function dismissNudge() {
         v-model="body"
         rows="3"
         placeholder="Leave a comment…"
-        class="w-full bg-zinc-800 text-zinc-200 text-sm rounded-lg px-3 py-2 resize-none focus:outline-none focus:ring-1 focus:ring-zinc-600"
+        class="w-full bg-zinc-800 text-zinc-200 text-sm rounded-lg px-3 py-2 resize-none focus:outline-none focus:ring-1"
+        :class="errors.body ? 'ring-1 ring-red-500 focus:ring-red-500' : 'focus:ring-zinc-600'"
         autofocus
+        @input="errors.body = false"
       />
 
       <template v-if="!auth.isAuthenticated">
         <input
           v-model="anonName"
           placeholder="Your name (required)"
-          class="w-full bg-zinc-800 text-zinc-200 text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-zinc-600"
+          class="w-full bg-zinc-800 text-zinc-200 text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:ring-1"
+          :class="errors.anonName ? 'ring-1 ring-red-500 focus:ring-red-500' : 'focus:ring-zinc-600'"
+          @input="errors.anonName = false"
         />
         <input
           v-model="anonEmail"
