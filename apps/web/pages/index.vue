@@ -36,6 +36,11 @@ useSeoMeta({
         <span class="text-zinc-400">→ https://cdnmcp.com/u/you/deck</span>
       </div>
 
+      <div class="text-left space-y-2">
+        <p class="text-zinc-500 text-xs uppercase tracking-widest font-medium px-1">Or connect via MCP</p>
+        <McpConfigTabs />
+      </div>
+
       <div class="flex gap-4 justify-center">
         <NuxtLink
           to="/register"

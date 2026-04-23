@@ -42,20 +42,28 @@ function copyKey() {
     </nav>
 
     <main class="max-w-2xl mx-auto px-6 py-8 space-y-8">
-      <div v-if="newKey" class="bg-zinc-900 border border-emerald-800 rounded-xl p-4 space-y-2">
-        <p class="text-emerald-400 text-sm font-medium">Key created — copy it now, it won't be shown again.</p>
-        <div class="flex gap-2">
-          <code class="flex-1 bg-zinc-950 px-3 py-2 rounded text-xs font-mono text-zinc-300 overflow-x-auto">
-            {{ newKey }}
-          </code>
-          <button
-            class="px-3 py-2 bg-zinc-800 hover:bg-zinc-700 rounded text-sm transition"
-            @click="copyKey"
-          >
-            Copy
-          </button>
+      <div v-if="newKey" class="border border-emerald-800 rounded-xl overflow-hidden space-y-0">
+        <div class="bg-zinc-900 px-4 pt-4 pb-3 space-y-2">
+          <p class="text-emerald-400 text-sm font-medium">Key created — copy it now, it won't be shown again.</p>
+          <div class="flex gap-2">
+            <code class="flex-1 bg-zinc-950 px-3 py-2 rounded text-xs font-mono text-zinc-300 overflow-x-auto">
+              {{ newKey }}
+            </code>
+            <button
+              class="px-3 py-2 bg-zinc-800 hover:bg-zinc-700 rounded text-sm transition"
+              @click="copyKey"
+            >
+              Copy
+            </button>
+          </div>
         </div>
-        <button class="text-xs text-zinc-500 hover:text-zinc-300" @click="newKey = null">Dismiss</button>
+        <div class="border-t border-zinc-800">
+          <p class="text-xs text-zinc-500 px-4 pt-3 pb-2 font-medium uppercase tracking-widest">Use with MCP</p>
+          <McpConfigTabs :api-key="newKey" />
+        </div>
+        <div class="bg-zinc-900 px-4 py-3">
+          <button class="text-xs text-zinc-500 hover:text-zinc-300" @click="newKey = null">Dismiss</button>
+        </div>
       </div>
 
       <div class="space-y-3">

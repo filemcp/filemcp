@@ -9,6 +9,7 @@ import { FileType, Visibility } from '@prisma/client'
 import { PrismaService } from '../../prisma/prisma.service'
 import { StorageService } from '../storage/storage.service'
 import { RenderService } from '../render/render.service'
+import { ThumbnailService } from '../thumbnail/thumbnail.service'
 import { UploadAssetDto } from './dto/upload-asset.dto'
 import { UpdateAssetDto } from './dto/update-asset.dto'
 import { generateSlug } from '../../utils/slug'
@@ -44,6 +45,7 @@ export class AssetsService {
     private prisma: PrismaService,
     private storage: StorageService,
     private render: RenderService,
+    private thumbnail: ThumbnailService,
   ) {}
 
   async upload(
@@ -97,6 +99,13 @@ export class AssetsService {
         description: dto.description,
         renderedPath,
       },
+    })
+
+    const thumbnailKey = this.storage.assetKey(userId, asset.id, versionNumber, 'thumbnail.jpg')
+    await this.thumbnail.enqueue({
+      versionId: version.id,
+      contentKey: renderedPath ?? originalKey,
+      thumbnailKey,
     })
 
     const appUrl = process.env.APP_URL ?? 'http://localhost:3000'
