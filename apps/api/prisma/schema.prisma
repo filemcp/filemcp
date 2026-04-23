@@ -1,0 +1,113 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  username     String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  assets   Asset[]
+  apiKeys  ApiKey[]
+  comments Comment[]
+}
+
+model ApiKey {
+  id            String    @id @default(cuid())
+  name          String
+  keyHash       String    @unique
+  lastFourChars String
+  lastUsedAt    DateTime?
+  createdAt     DateTime  @default(now())
+  revokedAt     DateTime?
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Asset {
+  id         String     @id @default(cuid())
+  slug       String
+  title      String?
+  visibility Visibility @default(PUBLIC)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  ownerId  String
+  owner    User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  versions Version[]
+  comments Comment[]
+
+  @@unique([ownerId, slug])
+}
+
+model Version {
+  id            String   @id @default(cuid())
+  number        Int
+  fileType      FileType
+  storagePath   String
+  sizeBytes     Int
+  description   String?
+  renderedPath  String?
+  thumbnailPath String?
+  createdAt     DateTime @default(now())
+
+  assetId String
+  asset   Asset  @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  @@unique([assetId, number])
+}
+
+model Comment {
+  id           String     @id @default(cuid())
+  body         String
+  anchorType   AnchorType
+  xPct         Float?
+  yPct         Float?
+  selectorHint String?
+  lineStart    Int?
+  lineEnd      Int?
+  resolved     Boolean    @default(false)
+  anonName     String?
+  anonEmail    String?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  assetId  String
+  asset    Asset    @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  authorId String?
+  author   User?    @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  parentId String?
+  parent   Comment? @relation("replies", fields: [parentId], references: [id])
+  replies  Comment[] @relation("replies")
+}
+
+enum Visibility {
+  PUBLIC
+  UNLISTED
+  PRIVATE
+}
+
+enum FileType {
+  HTML
+  MARKDOWN
+  JSON
+  TEXT
+  CSS
+  JS
+  TS
+  SVG
+}
+
+enum AnchorType {
+  POSITION
+  LINE_RANGE
+}

@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.output/
+.nuxt/
+.env
+.env.local
+.pnpm-store
+*.env.local
+*.log
+.DS_Store
+coverage/
+.turbo/
