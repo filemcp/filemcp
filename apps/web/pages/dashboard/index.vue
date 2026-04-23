@@ -13,15 +13,13 @@ watch(() => auth.activeOrg?.slug, () => refresh())
 const visibilityOpen = ref<string | null>(null) // asset id with open dropdown
 
 const VISIBILITY_OPTIONS = [
-  { value: 'PUBLIC',   label: 'Public',   desc: 'Anyone can view' },
-  { value: 'UNLISTED', label: 'Unlisted', desc: 'Only people with the link' },
-  { value: 'PRIVATE',  label: 'Private',  desc: 'Org members only' },
+  { value: 'PUBLIC',  label: 'Public',  desc: 'Anyone can view' },
+  { value: 'PRIVATE', label: 'Private', desc: 'Only you and invited users' },
 ]
 
 const VISIBILITY_STYLE: Record<string, string> = {
-  PUBLIC:   'text-emerald-400',
-  UNLISTED: 'text-amber-400',
-  PRIVATE:  'text-zinc-500',
+  PUBLIC:  'text-emerald-400',
+  PRIVATE: 'text-amber-400',
 }
 
 async function setVisibility(assetId: string, visibility: string) {
