@@ -32,12 +32,6 @@ export class VersionsService {
     if (!version) throw new NotFoundException()
 
     const path = version.renderedPath ?? version.storagePath
-    const url = await this.storage.getPresignedUrl(path, 3600)
-
-    return {
-      url,
-      expiresAt: new Date(Date.now() + 3600 * 1000).toISOString(),
-      fileType: version.fileType,
-    }
+    return this.storage.getObject(path)
   }
 }

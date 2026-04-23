@@ -1,4 +1,4 @@
-import { Controller, Get, Param, ParseIntPipe } from '@nestjs/common'
+import { Controller, Get, Param, ParseIntPipe, StreamableFile } from '@nestjs/common'
 import { ApiTags } from '@nestjs/swagger'
 import { VersionsService } from './versions.service'
 
@@ -13,10 +13,11 @@ export class VersionsController {
   }
 
   @Get(':version/content')
-  getContent(
+  async getContent(
     @Param('assetId') assetId: string,
     @Param('version', ParseIntPipe) version: number,
   ) {
-    return this.versions.getContent(assetId, version)
+    const { data, contentType } = await this.versions.getContent(assetId, version)
+    return new StreamableFile(data, { type: contentType })
   }
 }

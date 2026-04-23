@@ -201,8 +201,9 @@ export class AssetsService {
 
     if (!targetVersion) throw new NotFoundException()
 
-    const contentPath = targetVersion.renderedPath ?? targetVersion.storagePath
-    const contentUrl = await this.storage.getPresignedUrl(contentPath, 3600)
+    const contentUrl = versionNumber
+      ? `/api/public/${username}/${slug}/v/${versionNumber}/content`
+      : `/api/public/${username}/${slug}/content`
 
     return {
       assetId: asset.id,
@@ -222,6 +223,27 @@ export class AssetsService {
       visibility: asset.visibility,
       isOwner: requestingUserId === asset.owner.id,
     }
+  }
+
+  async streamContent(username: string, slug: string, versionNumber?: number, requestingUserId?: string) {
+    const asset = await this.prisma.asset.findFirst({
+      where: { owner: { username }, slug },
+      include: {
+        owner: { select: { id: true } },
+        versions: { orderBy: { number: 'desc' } },
+      },
+    })
+
+    if (!asset) throw new NotFoundException()
+    this.assertVisible(asset, requestingUserId)
+
+    const targetVersion = versionNumber
+      ? asset.versions.find((v) => v.number === versionNumber)
+      : asset.versions[0]
+
+    if (!targetVersion) throw new NotFoundException()
+
+    return this.storage.getObject(targetVersion.renderedPath ?? targetVersion.storagePath)
   }
 
   private assertVisible(asset: { visibility: Visibility; ownerId: string }, userId?: string) {

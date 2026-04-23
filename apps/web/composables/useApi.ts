@@ -9,6 +9,7 @@ export function useApi<T>(path: string, options?: UseFetchOptions<T>) {
 
   return useFetch<T>(url, {
     ...options,
+    key: path,
     headers: {
       ...options?.headers,
       ...(auth.token ? { Authorization: `Bearer ${auth.token}` } : {}),
@@ -33,9 +34,6 @@ export async function $api<T>(path: string, options?: RequestInit & { query?: Re
       ...(auth.token ? { Authorization: `Bearer ${auth.token}` } : {}),
     },
   })
-
-
-  console.log('.....2', res)
 
   return res
 }

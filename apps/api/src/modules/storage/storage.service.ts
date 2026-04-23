@@ -7,7 +7,7 @@ import {
   DeleteObjectsCommand,
   ListObjectsV2Command,
 } from '@aws-sdk/client-s3'
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
+import { Readable } from 'stream'
 
 @Injectable()
 export class StorageService {
@@ -33,9 +33,6 @@ export class StorageService {
         secretAccessKey: config.getOrThrow('S3_SECRET_KEY'),
       },
       forcePathStyle: !!this.internalEndpoint,
-      // Prevent SDK from appending x-amz-checksum-mode to presigned URLs, which MinIO rejects
-      requestChecksumCalculation: 'when_required',
-      responseChecksumValidation: 'when_required',
       requestHandler: {
         requestTimeout: 10_000,
         connectionTimeout: 5_000,
@@ -58,17 +55,18 @@ export class StorageService {
     return `${this.publicUrl}/${key}`
   }
 
-  async getPresignedUrl(key: string, expiresIn = 3600): Promise<string> {
-    const url = await getSignedUrl(
-      this.client,
+  async getObject(key: string): Promise<{ data: Buffer; contentType: string }> {
+    const response = await this.client.send(
       new GetObjectCommand({ Bucket: this.bucket, Key: key }),
-      { expiresIn },
     )
-    // Rewrite the internal hostname to the public-facing one so browsers can load it
-    if (this.internalEndpoint && this.publicEndpoint && this.internalEndpoint !== this.publicEndpoint) {
-      return url.replace(this.internalEndpoint, this.publicEndpoint)
+    const chunks: Buffer[] = []
+    for await (const chunk of response.Body as Readable) {
+      chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk))
     }
-    return url
+    return {
+      data: Buffer.concat(chunks),
+      contentType: response.ContentType ?? 'application/octet-stream',
+    }
   }
 
   async deleteFolder(prefix: string): Promise<void> {

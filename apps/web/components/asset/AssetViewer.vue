@@ -28,6 +28,7 @@ const { data: commentsData, refresh: refreshComments } = await useApi<Comment[]>
   `/assets/${props.asset.assetId}/comments`,
 )
 commentStore.setComments(commentsData.value ?? [])
+watch(commentsData, (val) => commentStore.setComments(val ?? []))
 
 function handleViewerClick(event: { xPct: number; yPct: number; selectorHint: string }) {
   if (!commentStore.commentMode) return

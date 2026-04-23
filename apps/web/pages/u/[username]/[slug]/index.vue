@@ -3,7 +3,6 @@ const route = useRoute()
 const username = route.params.username as string
 const slug = route.params.slug as string
 
-console.log(">...........", username, slug)
 const { data, error } = await useApi<any>(`/public/${username}/${slug}`)
 
 if (error.value) {
