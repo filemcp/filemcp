@@ -19,6 +19,7 @@ export default defineNuxtConfig({
     public: {
       // Browser-accessible — relative so it works through any tunnel/proxy
       apiUrl: process.env.NUXT_PUBLIC_API_URL ?? '/api',
+      appUrl: process.env.NUXT_PUBLIC_APP_URL ?? '',
     },
   },
 

@@ -3,6 +3,14 @@ const props = withDefaults(defineProps<{ apiKey?: string }>(), {
   apiKey: 'cdnmcp_...',
 })
 
+const config = useRuntimeConfig()
+const mcpUrl = computed(() => {
+  const base = import.meta.client
+    ? window.location.origin
+    : (config.public.appUrl ?? config.appUrl ?? '')
+  return `${base}/api/mcp`
+})
+
 const tabs = ['json', 'codex', 'claude'] as const
 type Tab = (typeof tabs)[number]
 const activeTab = ref<Tab>('json')
@@ -14,7 +22,7 @@ const jsonConfig = computed(() =>
       mcpServers: {
         cdnmcp: {
           type: 'streamable-http',
-          url: 'https://cdnmcp.com/mcp',
+          url: mcpUrl.value,
           headers: {
             Authorization: `Bearer ${props.apiKey}`,
           },
@@ -28,12 +36,12 @@ const jsonConfig = computed(() =>
 
 const codexCommand = computed(
   () =>
-    `codex --mcp-server '{"name":"cdnmcp","url":"https://cdnmcp.com/mcp","headers":{"Authorization":"Bearer ${props.apiKey}"}}'`,
+    `codex --mcp-server '{"name":"cdnmcp","url":"${mcpUrl.value}","headers":{"Authorization":"Bearer ${props.apiKey}"}}'`,
 )
 
 const claudeCommand = computed(
   () =>
-    `claude mcp add --transport http cdnmcp https://cdnmcp.com/mcp -H "Authorization: Bearer ${props.apiKey}"`,
+    `claude mcp add --transport http cdnmcp ${mcpUrl.value} -H "Authorization: Bearer ${props.apiKey}"`,
 )
 
 const activeContent = computed(() => {
