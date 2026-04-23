@@ -14,77 +14,72 @@ interface AuthState {
   activeOrgSlug: string | null
 }
 
-export const useAuthStore = defineStore('auth', {
-  state: (): AuthState => ({
-    token: null,
-    user: null,
-    orgs: [],
-    activeOrgSlug: null,
-  }),
+const TOKEN_COOKIE = 'access_token'
+const MAX_AGE = 7 * 24 * 3600
 
-  getters: {
-    isAuthenticated: (state) => !!state.token,
-    activeOrg: (state): OrgSummary | null =>
-      state.orgs.find((o) => o.slug === state.activeOrgSlug) ?? state.orgs[0] ?? null,
-  },
+export const useAuthStore = defineStore('auth', () => {
+  const tokenCookie = useCookie<string | null>(TOKEN_COOKIE, { maxAge: MAX_AGE, path: '/', sameSite: 'lax' })
 
-  actions: {
-    setSession(token: string, user: AuthState['user']) {
-      this.token = token
-      this.user = user
-      if (import.meta.client) {
-        localStorage.setItem('access_token', token)
-        if (user) localStorage.setItem('auth_user', JSON.stringify(user))
-        document.cookie = `access_token=${token}; path=/; SameSite=Lax; max-age=${7 * 24 * 3600}`
-      }
-    },
+  const token = computed(() => tokenCookie.value)
+  const user = ref<AuthState['user']>(null)
+  const orgs = ref<OrgSummary[]>([])
+  const activeOrgSlug = ref<string | null>(null)
 
-    setOrgs(orgs: OrgSummary[]) {
-      this.orgs = orgs
-      // Keep activeOrgSlug if it's still valid, otherwise default to personal org
-      if (!orgs.find((o) => o.slug === this.activeOrgSlug)) {
-        this.activeOrgSlug = this.user?.username ?? orgs[0]?.slug ?? null
-      }
-      if (import.meta.client) {
-        localStorage.setItem('auth_orgs', JSON.stringify(orgs))
-        localStorage.setItem('auth_active_org', this.activeOrgSlug ?? '')
-      }
-    },
+  const isAuthenticated = computed(() => !!tokenCookie.value)
+  const activeOrg = computed<OrgSummary | null>(
+    () => orgs.value.find((o) => o.slug === activeOrgSlug.value) ?? orgs.value[0] ?? null,
+  )
 
-    switchOrg(slug: string) {
-      this.activeOrgSlug = slug
-      if (import.meta.client) {
-        localStorage.setItem('auth_active_org', slug)
-      }
-    },
+  function setSession(newToken: string, newUser: AuthState['user']) {
+    tokenCookie.value = newToken
+    user.value = newUser
+    if (import.meta.client) {
+      if (newUser) localStorage.setItem('auth_user', JSON.stringify(newUser))
+    }
+  }
 
-    loadFromStorage() {
-      if (import.meta.client) {
-        const token = localStorage.getItem('access_token')
-        if (token) this.token = token
-        try {
-          const userRaw = localStorage.getItem('auth_user')
-          if (userRaw) this.user = JSON.parse(userRaw)
-          const orgsRaw = localStorage.getItem('auth_orgs')
-          if (orgsRaw) this.orgs = JSON.parse(orgsRaw)
-          const activeOrg = localStorage.getItem('auth_active_org')
-          if (activeOrg) this.activeOrgSlug = activeOrg
-        } catch {}
-      }
-    },
+  function setOrgs(newOrgs: OrgSummary[]) {
+    orgs.value = newOrgs
+    if (!newOrgs.find((o) => o.slug === activeOrgSlug.value)) {
+      activeOrgSlug.value = user.value?.username ?? newOrgs[0]?.slug ?? null
+    }
+    if (import.meta.client) {
+      localStorage.setItem('auth_orgs', JSON.stringify(newOrgs))
+      localStorage.setItem('auth_active_org', activeOrgSlug.value ?? '')
+    }
+  }
 
-    logout() {
-      this.token = null
-      this.user = null
-      this.orgs = []
-      this.activeOrgSlug = null
-      if (import.meta.client) {
-        localStorage.removeItem('access_token')
-        localStorage.removeItem('auth_user')
-        localStorage.removeItem('auth_orgs')
-        localStorage.removeItem('auth_active_org')
-        document.cookie = 'access_token=; path=/; max-age=0'
-      }
-    },
-  },
+  function switchOrg(slug: string) {
+    activeOrgSlug.value = slug
+    if (import.meta.client) {
+      localStorage.setItem('auth_active_org', slug)
+    }
+  }
+
+  function loadFromStorage() {
+    if (import.meta.client) {
+      try {
+        const userRaw = localStorage.getItem('auth_user')
+        if (userRaw) user.value = JSON.parse(userRaw)
+        const orgsRaw = localStorage.getItem('auth_orgs')
+        if (orgsRaw) orgs.value = JSON.parse(orgsRaw)
+        const activeOrg = localStorage.getItem('auth_active_org')
+        if (activeOrg) activeOrgSlug.value = activeOrg
+      } catch {}
+    }
+  }
+
+  function logout() {
+    tokenCookie.value = null
+    user.value = null
+    orgs.value = []
+    activeOrgSlug.value = null
+    if (import.meta.client) {
+      localStorage.removeItem('auth_user')
+      localStorage.removeItem('auth_orgs')
+      localStorage.removeItem('auth_active_org')
+    }
+  }
+
+  return { token, user, orgs, activeOrgSlug, isAuthenticated, activeOrg, setSession, setOrgs, switchOrg, loadFromStorage, logout }
 })
