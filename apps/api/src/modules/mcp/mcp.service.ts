@@ -1,6 +1,5 @@
 // @ts-nocheck
 import { Injectable } from '@nestjs/common'
-import { z } from 'zod'
 import type { Request, Response } from 'express'
 import { AssetsService } from '../assets/assets.service'
 
@@ -21,19 +20,25 @@ const TOOLS = [
   {
     name: 'upload_asset',
     description:
-      'Upload a text file to cdnmcp and get back a shareable URL. Supports HTML, Markdown, JSON, CSS, JS, SVG, and plain text.',
+      'Upload a file to cdnmcp and get back a shareable URL. Returns a curl command — run it with Bash to perform the upload. Supports HTML, Markdown, JSON, CSS, JS, SVG, and plain text.',
     inputSchema: {
       type: 'object',
       properties: {
-        content: { type: 'string', description: 'File content as text' },
-        filename: { type: 'string', description: 'Filename with extension, e.g. "deck.html"' },
+        filepath: {
+          type: 'string',
+          description: 'Absolute path to the file on disk, e.g. "/home/user/deck.html"',
+        },
+        filename: {
+          type: 'string',
+          description: 'Filename with extension, e.g. "deck.html". Used to detect the file type.',
+        },
         slug: {
           type: 'string',
           description: 'Custom URL slug (optional). Generated automatically if omitted.',
           pattern: '^[a-z0-9-]+$',
         },
       },
-      required: ['content', 'filename'],
+      required: ['filepath', 'filename'],
     },
   },
   {
@@ -66,7 +71,7 @@ export class McpService {
     }
 
     try {
-      const result = await this.dispatch(method, params, req.user)
+      const result = await this.dispatch(method, params, req)
       res.set('Connection', 'close').json({ jsonrpc: '2.0', id, result })
     } catch (err: any) {
       console.error('[MCP] error in', method, err?.message)
@@ -78,7 +83,7 @@ export class McpService {
     }
   }
 
-  private async dispatch(method: string, params: any, user: { id: string; username: string }) {
+  private async dispatch(method: string, params: any, req: Request & { user: { id: string; username: string } }) {
     switch (method) {
       case 'initialize':
         return {
@@ -91,7 +96,7 @@ export class McpService {
         return { tools: TOOLS }
 
       case 'tools/call':
-        return this.callTool(params.name, params.arguments ?? {}, user)
+        return this.callTool(params.name, params.arguments ?? {}, req)
 
       case 'ping':
         return {}
@@ -101,27 +106,27 @@ export class McpService {
     }
   }
 
-  private async callTool(name: string, args: any, user: { id: string; username: string }) {
+  private async callTool(name: string, args: any, req: Request & { user: { id: string; username: string } }) {
     if (name === 'upload_asset') {
-      const { content, filename, slug } = args
-      console.log('[MCP] upload_asset', { filename, slug, contentLength: content?.length })
-
+      const { filepath, filename, slug } = args
       const ext = filename.split('.').pop()?.toLowerCase() ?? 'txt'
       const mime = MIME_TYPES[ext] ?? 'text/plain'
-      const buffer = Buffer.from(content, 'utf8')
+      const token = req.headers.authorization
+      const apiBase = `${req.protocol}://${req.get('host')}/api`
 
-      const result = await this.assets.upload(
-        user.id,
-        { buffer, mimetype: mime, originalname: filename, size: buffer.byteLength },
-        { slug },
-      )
-      console.log('[MCP] upload complete', result)
+      const resolvedSlug = slug ?? filename.replace(/\.[^.]+$/, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+
+      const fields = [`-F "file=@${filepath};type=${mime}"`, `-F "slug=${resolvedSlug}"`]
+
+      const cmd = `curl -s -X POST "${apiBase}/assets" -H "Authorization: ${token}" ${fields.join(' ')}`
+
+      console.log('[MCP] upload_asset curl', { filepath, filename, slug })
 
       return {
         content: [
           {
             type: 'text',
-            text: `Uploaded!\n\nURL: ${result.url}\nVersion: ${result.version}\nVersion URL: ${result.versionUrl}`,
+            text: `Run this command to upload:\n\n${cmd}\n\nThe JSON response will contain the asset \`url\` and \`versionUrl\`.`,
           },
         ],
       }
@@ -130,7 +135,7 @@ export class McpService {
     if (name === 'list_assets') {
       const page = args.page ?? 1
       const limit = Math.min(args.limit ?? 20, 50)
-      const result = await this.assets.listOwned(user.id, page, limit)
+      const result = await this.assets.listOwned(req.user.id, page, limit)
 
       if (result.items.length === 0) {
         return { content: [{ type: 'text', text: 'No assets found.' }] }
