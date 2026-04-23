@@ -9,8 +9,8 @@ import rehypeStringify from 'rehype-stringify'
 const processor = unified()
   .use(remarkParse)
   .use(remarkRehype)
-  .use(rehypeSanitize)
   .use(rehypeHighlight)
+  .use(rehypeSanitize)
   .use(rehypeStringify)
 
 @Injectable()
