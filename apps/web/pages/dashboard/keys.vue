@@ -1,16 +1,19 @@
 <script setup lang="ts">
 definePageMeta({ middleware: 'auth' })
 
-const { data: keys, refresh } = useApi<any[]>('/keys')
+const auth = useAuthStore()
+const orgSlug = computed(() => auth.activeOrg?.slug ?? null)
+
+const { data: keys, refresh } = useApi<any[]>(computed(() => orgSlug.value ? `/orgs/${orgSlug.value}/keys` : null))
 const newKeyName = ref('')
 const newKey = ref<string | null>(null)
 const creating = ref(false)
 
 async function createKey() {
-  if (!newKeyName.value.trim()) return
+  if (!newKeyName.value.trim() || !orgSlug.value) return
   creating.value = true
   try {
-    const res = await $api<{ key: string; id: string; name: string }>('/keys', {
+    const res = await $api<{ key: string; id: string; name: string }>(`/orgs/${orgSlug.value}/keys`, {
       method: 'POST',
       body: JSON.stringify({ name: newKeyName.value }),
       headers: { 'Content-Type': 'application/json' },
@@ -25,7 +28,7 @@ async function createKey() {
 
 async function revokeKey(id: string) {
   if (!confirm('Revoke this key?')) return
-  await $api(`/keys/${id}`, { method: 'DELETE' })
+  await $api(`/orgs/${orgSlug.value}/keys/${id}`, { method: 'DELETE' })
   refresh()
 }
 
@@ -36,10 +39,7 @@ function copyKey() {
 
 <template>
   <div class="min-h-screen bg-zinc-950 text-white">
-    <nav class="border-b border-zinc-800 px-6 py-4 flex items-center gap-4">
-      <NuxtLink to="/dashboard" class="text-zinc-400 hover:text-white text-sm">← Dashboard</NuxtLink>
-      <span class="font-semibold">API Keys</span>
-    </nav>
+    <DashboardNav />
 
     <main class="max-w-2xl mx-auto px-6 py-8 space-y-8">
       <div v-if="newKey" class="border border-emerald-800 rounded-xl overflow-hidden space-y-0">

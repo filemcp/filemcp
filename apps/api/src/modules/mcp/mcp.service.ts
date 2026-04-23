@@ -1,26 +1,15 @@
 // @ts-nocheck
 import { Injectable } from '@nestjs/common'
 import type { Request, Response } from 'express'
+import { OrgRole } from '@prisma/client'
 import { AssetsService } from '../assets/assets.service'
-
-const MIME_TYPES: Record<string, string> = {
-  html: 'text/html',
-  htm: 'text/html',
-  md: 'text/markdown',
-  markdown: 'text/markdown',
-  json: 'application/json',
-  txt: 'text/plain',
-  css: 'text/css',
-  js: 'text/javascript',
-  ts: 'text/plain',
-  svg: 'image/svg+xml',
-}
+import { PrismaService } from '../../prisma/prisma.service'
 
 const TOOLS = [
   {
     name: 'upload_asset',
     description:
-      'Upload a file to cdnmcp and get back a shareable URL. Returns a curl command — run it with Bash to perform the upload. Supports HTML, Markdown, JSON, CSS, JS, SVG, and plain text.',
+      'Upload a file to cdnmcp and get back a shareable URL. Returns a curl command — run it with Bash to perform the upload. Supports HTML, Markdown, JSON, CSS, JS, SVG, and plain text. Requires WRITE or OWNER role.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -52,19 +41,47 @@ const TOOLS = [
       },
     },
   },
+  {
+    name: 'get_asset',
+    description:
+      'Download the content of an asset from cdnmcp. Returns the raw file content so you can read or edit it. Use this when you want to work on an existing asset.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        slug: { type: 'string', description: 'Asset slug' },
+        version: { type: 'number', description: 'Version number (omit for latest)' },
+      },
+      required: ['slug'],
+    },
+  },
 ]
+
+const MIME_TYPES: Record<string, string> = {
+  html: 'text/html',
+  htm: 'text/html',
+  md: 'text/markdown',
+  markdown: 'text/markdown',
+  json: 'application/json',
+  txt: 'text/plain',
+  css: 'text/css',
+  js: 'text/javascript',
+  ts: 'text/plain',
+  svg: 'image/svg+xml',
+}
 
 @Injectable()
 export class McpService {
-  constructor(private assets: AssetsService) {}
+  constructor(
+    private assets: AssetsService,
+    private prisma: PrismaService,
+  ) {}
 
-  async handle(req: Request & { user: { id: string; username: string } }, res: Response) {
+  async handle(req: Request & { user: any }, res: Response) {
     const body = req.body
     const { method, params, id } = body
 
     console.log('[MCP]', method, id != null ? `id=${id}` : '(notification)')
 
-    // Notifications get 202, no body
     if (id == null) {
       res.status(202).set('Connection', 'close').end()
       return
@@ -83,7 +100,7 @@ export class McpService {
     }
   }
 
-  private async dispatch(method: string, params: any, req: Request & { user: { id: string; username: string } }) {
+  private async dispatch(method: string, params: any, req: Request & { user: any }) {
     switch (method) {
       case 'initialize':
         return {
@@ -106,8 +123,14 @@ export class McpService {
     }
   }
 
-  private async callTool(name: string, args: any, req: Request & { user: { id: string; username: string } }) {
+  private async callTool(name: string, args: any, req: Request & { user: any }) {
+    const { orgId, orgSlug, role } = await this.resolveOrgContext(req)
+
     if (name === 'upload_asset') {
+      if (role === OrgRole.READ) {
+        throw new Error('Your API key has read-only access. Upload requires WRITE or OWNER role.')
+      }
+
       const { filepath, filename, slug } = args
       const ext = filename.split('.').pop()?.toLowerCase() ?? 'txt'
       const mime = MIME_TYPES[ext] ?? 'text/plain'
@@ -117,10 +140,9 @@ export class McpService {
       const resolvedSlug = slug ?? filename.replace(/\.[^.]+$/, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
 
       const fields = [`-F "file=@${filepath};type=${mime}"`, `-F "slug=${resolvedSlug}"`]
+      const cmd = `curl -s -X POST "${apiBase}/orgs/${orgSlug}/assets" -H "Authorization: ${token}" ${fields.join(' ')}`
 
-      const cmd = `curl -s -X POST "${apiBase}/assets" -H "Authorization: ${token}" ${fields.join(' ')}`
-
-      console.log('[MCP] upload_asset curl', { filepath, filename, slug })
+      console.log('[MCP] upload_asset curl', { filepath, filename, slug, orgSlug })
 
       return {
         content: [
@@ -135,7 +157,7 @@ export class McpService {
     if (name === 'list_assets') {
       const page = args.page ?? 1
       const limit = Math.min(args.limit ?? 20, 50)
-      const result = await this.assets.listOwned(req.user.id, page, limit)
+      const result = await this.assets.listByOrg(orgId, page, limit)
 
       if (result.items.length === 0) {
         return { content: [{ type: 'text', text: 'No assets found.' }] }
@@ -148,6 +170,38 @@ export class McpService {
       return { content: [{ type: 'text', text: lines.join('\n') }] }
     }
 
+    if (name === 'get_asset') {
+      const { slug, version } = args
+      const { data, contentType } = await this.assets.streamContent(orgSlug, slug, version, req.user.id)
+      const text = data.toString('utf8')
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `Content of "${slug}"${version ? ` (v${version})` : ' (latest)'}:\n\n${text}`,
+          },
+        ],
+      }
+    }
+
     throw new Error(`Unknown tool: ${name}`)
+  }
+
+  private async resolveOrgContext(req: Request & { user: any }) {
+    // API key auth: org context already on the user object
+    if (req.user.orgId) {
+      return { orgId: req.user.orgId, orgSlug: req.user.orgSlug, role: req.user.role as OrgRole }
+    }
+
+    // JWT auth: find the user's first (personal) org
+    const member = await this.prisma.orgMember.findFirst({
+      where: { userId: req.user.id },
+      include: { org: true },
+      orderBy: { createdAt: 'asc' },
+    })
+    if (!member) throw new Error('No organization found. Create an org first.')
+
+    return { orgId: member.orgId, orgSlug: member.org.slug, role: member.role as OrgRole }
   }
 }

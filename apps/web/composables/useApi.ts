@@ -1,20 +1,24 @@
-import type { UseFetchOptions } from 'nuxt/app'
+import type { AsyncDataOptions } from 'nuxt/app'
+import { type MaybeRefOrGetter, toValue } from 'vue'
 
-export function useApi<T>(path: string, options?: UseFetchOptions<T>) {
+export function useApi<T>(path: MaybeRefOrGetter<string | null>, options?: AsyncDataOptions<T>) {
   const config = useRuntimeConfig()
   const auth = useAuthStore()
-  const apiUrl = import.meta.server ? config.apiUrl : config.public.apiUrl
 
-  const url = `${apiUrl}${path}`
+  const resolvedPath = computed(() => toValue(path))
 
-  return useFetch<T>(url, {
-    ...options,
-    key: path,
-    headers: {
-      ...options?.headers,
-      ...(auth.token ? { Authorization: `Bearer ${auth.token}` } : {}),
+  return useAsyncData<T>(
+    computed(() => toValue(path) ?? '__noop__') as unknown as string,
+    async () => {
+      const p = toValue(path)
+      if (!p) return null as unknown as T
+      const apiUrl = import.meta.server ? config.apiUrl : config.public.apiUrl
+      return $fetch<T>(`${apiUrl}${p}`, {
+        headers: auth.token ? { Authorization: `Bearer ${auth.token}` } : {},
+      })
     },
-  })
+    { ...options, watch: [resolvedPath, ...(options?.watch ?? [])] },
+  )
 }
 
 export async function $api<T>(path: string, options?: RequestInit & { query?: Record<string, string> }): Promise<T> {
@@ -27,13 +31,11 @@ export async function $api<T>(path: string, options?: RequestInit & { query?: Re
     Object.entries(query).forEach(([k, v]) => url.searchParams.set(k, v))
   }
 
-  const res = await $fetch<T>(url.toString(), {
+  return $fetch<T>(url.toString(), {
     ...fetchOptions,
     headers: {
-      ...fetchOptions?.headers,
+      ...(fetchOptions?.headers as Record<string, string> | undefined),
       ...(auth.token ? { Authorization: `Bearer ${auth.token}` } : {}),
     },
   })
-
-  return res
 }

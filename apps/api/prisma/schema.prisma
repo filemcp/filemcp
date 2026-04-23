@@ -7,6 +7,31 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Organization {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  name      String
+  createdAt DateTime @default(now())
+
+  members OrgMember[]
+  assets  Asset[]
+}
+
+model OrgMember {
+  id        String   @id @default(cuid())
+  role      OrgRole
+  createdAt DateTime @default(now())
+
+  orgId  String
+  org    Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  userId String
+  user   User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  apiKeys ApiKey[]
+
+  @@unique([orgId, userId])
+}
+
 model User {
   id           String   @id @default(cuid())
   email        String   @unique
@@ -15,9 +40,8 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  assets   Asset[]
-  apiKeys  ApiKey[]
-  comments Comment[]
+  memberships OrgMember[]
+  comments    Comment[]
 }
 
 model ApiKey {
@@ -29,8 +53,8 @@ model ApiKey {
   createdAt     DateTime  @default(now())
   revokedAt     DateTime?
 
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  memberId String
+  member   OrgMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
 }
 
 model Asset {
@@ -41,12 +65,12 @@ model Asset {
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @updatedAt
 
-  ownerId  String
-  owner    User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  orgId    String
+  org      Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
   versions Version[]
   comments Comment[]
 
-  @@unique([ownerId, slug])
+  @@unique([orgId, slug])
 }
 
 model Version {
@@ -88,6 +112,12 @@ model Comment {
   parentId String?
   parent   Comment? @relation("replies", fields: [parentId], references: [id])
   replies  Comment[] @relation("replies")
+}
+
+enum OrgRole {
+  OWNER
+  WRITE
+  READ
 }
 
 enum Visibility {

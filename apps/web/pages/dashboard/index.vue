@@ -1,7 +1,15 @@
 <script setup lang="ts">
 definePageMeta({ middleware: 'auth' })
 
-const { data, pending, refresh } = useApi<{ items: any[]; total: number }>('/assets')
+const auth = useAuthStore()
+const orgSlug = computed(() => auth.activeOrg?.slug ?? null)
+
+const { data, pending, refresh } = useApi<{ items: any[]; total: number }>(
+  computed(() => orgSlug.value ? `/orgs/${orgSlug.value}/assets` : null),
+)
+
+// Refresh when the active org changes
+watch(() => auth.activeOrg?.slug, () => refresh())
 
 async function copyUrl(username: string, slug: string) {
   const url = `${window.location.origin}/u/${username}/${slug}`
@@ -10,19 +18,14 @@ async function copyUrl(username: string, slug: string) {
 
 async function deleteAsset(id: string) {
   if (!confirm('Delete this asset and all its versions?')) return
-  await $api(`/assets/${id}`, { method: 'DELETE' })
+  await $api(`/orgs/${orgSlug.value}/assets/${id}`, { method: 'DELETE' })
   refresh()
 }
 </script>
 
 <template>
   <div class="min-h-screen bg-zinc-950 text-white">
-    <nav class="border-b border-zinc-800 px-6 py-4 flex items-center justify-between">
-      <NuxtLink to="/" class="font-bold text-lg">cdnmcp</NuxtLink>
-      <div class="flex gap-4 text-sm">
-        <NuxtLink to="/dashboard/keys" class="text-zinc-400 hover:text-white">API Keys</NuxtLink>
-      </div>
-    </nav>
+    <DashboardNav />
 
     <main class="max-w-5xl mx-auto px-6 py-8">
       <div class="flex items-center justify-between mb-6">
@@ -35,7 +38,7 @@ async function deleteAsset(id: string) {
       <div v-else-if="!data?.items?.length" class="text-center py-20 text-zinc-500">
         <p class="text-lg mb-2">No assets yet.</p>
         <p class="text-sm font-mono bg-zinc-900 inline-block px-4 py-2 rounded-lg">
-          curl -X POST .../api/assets -F "file=@deck.html"
+          curl -X POST .../api/orgs/{{ orgSlug }}/assets -F "file=@deck.html"
         </p>
       </div>
 

@@ -28,6 +28,14 @@ export class AuthService {
       data: { email: dto.email, username: dto.username, passwordHash },
     })
 
+    // Auto-create a personal org with the same slug as the username
+    const org = await this.prisma.organization.create({
+      data: { slug: user.username, name: user.username },
+    })
+    await this.prisma.orgMember.create({
+      data: { orgId: org.id, userId: user.id, role: 'OWNER' },
+    })
+
     return { accessToken: this.signAccessToken(user.id, user.username), user: this.serializeUser(user) }
   }
 
@@ -44,7 +52,7 @@ export class AuthService {
 
     const keys = await this.prisma.apiKey.findMany({
       where: { revokedAt: null },
-      include: { user: true },
+      include: { member: { include: { org: true } } },
     })
 
     for (const key of keys) {
@@ -53,7 +61,13 @@ export class AuthService {
           where: { id: key.id },
           data: { lastUsedAt: new Date() },
         })
-        return key.user
+        return {
+          id: key.member.userId,
+          username: key.member.org.slug,
+          orgId: key.member.orgId,
+          orgSlug: key.member.org.slug,
+          role: key.member.role,
+        }
       }
     }
     return null

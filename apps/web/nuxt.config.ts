@@ -21,7 +21,7 @@ export default defineNuxtConfig({
       apiUrl: process.env.NUXT_PUBLIC_API_URL ?? '/api',
     },
   },
-  
+
   routeRules: {
     '/dashboard/**': { ssr: false },
     '/u/**': { ssr: true },

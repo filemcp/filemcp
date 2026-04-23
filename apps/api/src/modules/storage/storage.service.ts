@@ -84,7 +84,7 @@ export class StorageService {
     )
   }
 
-  assetKey(userId: string, assetId: string, version: number, filename: string): string {
-    return `assets/${userId}/${assetId}/v${version}/${filename}`
+  assetKey(orgId: string, assetId: string, version: number, filename: string): string {
+    return `assets/${orgId}/${assetId}/v${version}/${filename}`
   }
 }

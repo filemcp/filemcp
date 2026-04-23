@@ -49,6 +49,7 @@ export class AssetsService {
   ) {}
 
   async upload(
+    orgId: string,
     userId: string,
     file: { buffer: Buffer; mimetype: string; originalname: string; size: number },
     dto: UploadAssetDto,
@@ -62,12 +63,12 @@ export class AssetsService {
       throw new BadRequestException(`Unsupported file type: ${file.mimetype}`)
     }
 
-    const user = await this.prisma.user.findUniqueOrThrow({ where: { id: userId } })
+    const org = await this.prisma.organization.findUniqueOrThrow({ where: { id: orgId } })
     const slug = dto.slug ?? generateSlug()
 
     const asset = await this.prisma.asset.upsert({
-      where: { ownerId_slug: { ownerId: userId, slug } },
-      create: { ownerId: userId, slug, title: dto.title ?? slug, visibility: dto.visibility },
+      where: { orgId_slug: { orgId, slug } },
+      create: { orgId, slug, title: dto.title ?? slug, visibility: dto.visibility },
       update: { updatedAt: new Date() },
     })
 
@@ -78,13 +79,13 @@ export class AssetsService {
     const versionNumber = (lastVersion?.number ?? 0) + 1
 
     const ext = FILE_TYPE_EXTENSION[fileType]
-    const originalKey = this.storage.assetKey(userId, asset.id, versionNumber, `original.${ext}`)
+    const originalKey = this.storage.assetKey(orgId, asset.id, versionNumber, `original.${ext}`)
     await this.storage.upload(originalKey, file.buffer, file.mimetype)
 
     let renderedPath: string | undefined
     if (fileType === FileType.MARKDOWN) {
       const html = await this.render.markdownToHtml(file.buffer.toString('utf8'))
-      const renderedKey = this.storage.assetKey(userId, asset.id, versionNumber, 'rendered.html')
+      const renderedKey = this.storage.assetKey(orgId, asset.id, versionNumber, 'rendered.html')
       await this.storage.upload(renderedKey, Buffer.from(html), 'text/html')
       renderedPath = renderedKey
     }
@@ -101,7 +102,7 @@ export class AssetsService {
       },
     })
 
-    const thumbnailKey = this.storage.assetKey(userId, asset.id, versionNumber, 'thumbnail.jpg')
+    const thumbnailKey = this.storage.assetKey(orgId, asset.id, versionNumber, 'thumbnail.jpg')
     await this.thumbnail.enqueue({
       versionId: version.id,
       contentKey: renderedPath ?? originalKey,
@@ -114,27 +115,27 @@ export class AssetsService {
       assetId: asset.id,
       slug: asset.slug,
       version: version.number,
-      url: `${appUrl}/u/${user.username}/${asset.slug}`,
-      versionUrl: `${appUrl}/u/${user.username}/${asset.slug}/v/${version.number}`,
+      url: `${appUrl}/u/${org.slug}/${asset.slug}`,
+      versionUrl: `${appUrl}/u/${org.slug}/${asset.slug}/v/${version.number}`,
       fileType: version.fileType,
       sizeBytes: version.sizeBytes,
     }
   }
 
-  async listOwned(userId: string, page: number, limit: number) {
+  async listByOrg(orgId: string, page: number, limit: number) {
     const [items, total] = await Promise.all([
       this.prisma.asset.findMany({
-        where: { ownerId: userId },
+        where: { orgId },
         orderBy: { updatedAt: 'desc' },
         skip: (page - 1) * limit,
         take: limit,
         include: {
-          owner: { select: { username: true } },
+          org: { select: { slug: true } },
           versions: { orderBy: { number: 'desc' }, take: 1 },
           _count: { select: { comments: true } },
         },
       }),
-      this.prisma.asset.count({ where: { ownerId: userId } }),
+      this.prisma.asset.count({ where: { orgId } }),
     ])
 
     return {
@@ -145,25 +146,25 @@ export class AssetsService {
     }
   }
 
-  async getById(assetId: string, requestingUserId?: string) {
+  async getById(assetId: string, orgId: string) {
     const asset = await this.prisma.asset.findUnique({
       where: { id: assetId },
       include: {
-        owner: { select: { username: true } },
+        org: { select: { slug: true } },
         versions: { orderBy: { number: 'asc' } },
         _count: { select: { comments: true } },
       },
     })
 
     if (!asset) throw new NotFoundException()
-    this.assertVisible(asset, requestingUserId)
+    if (asset.orgId !== orgId) throw new ForbiddenException()
 
     return {
       id: asset.id,
       slug: asset.slug,
       title: asset.title,
       visibility: asset.visibility,
-      owner: asset.owner,
+      owner: { username: asset.org.slug },
       versions: asset.versions.map((v) => ({
         number: v.number,
         createdAt: v.createdAt,
@@ -174,35 +175,35 @@ export class AssetsService {
     }
   }
 
-  async update(userId: string, assetId: string, dto: UpdateAssetDto) {
+  async update(orgId: string, assetId: string, dto: UpdateAssetDto) {
     const asset = await this.prisma.asset.findUnique({ where: { id: assetId } })
     if (!asset) throw new NotFoundException()
-    if (asset.ownerId !== userId) throw new ForbiddenException()
+    if (asset.orgId !== orgId) throw new ForbiddenException()
 
     return this.prisma.asset.update({ where: { id: assetId }, data: dto })
   }
 
-  async delete(userId: string, assetId: string) {
+  async delete(orgId: string, assetId: string) {
     const asset = await this.prisma.asset.findUnique({ where: { id: assetId } })
     if (!asset) throw new NotFoundException()
-    if (asset.ownerId !== userId) throw new ForbiddenException()
+    if (asset.orgId !== orgId) throw new ForbiddenException()
 
-    await this.storage.deleteFolder(`assets/${userId}/${assetId}/`)
+    await this.storage.deleteFolder(`assets/${orgId}/${assetId}/`)
     await this.prisma.asset.delete({ where: { id: assetId } })
   }
 
-  async resolvePublic(username: string, slug: string, versionNumber?: number, requestingUserId?: string) {
+  async resolvePublic(orgSlug: string, slug: string, versionNumber?: number, requestingUserId?: string) {
     const asset = await this.prisma.asset.findFirst({
-      where: { owner: { username }, slug },
+      where: { org: { slug: orgSlug }, slug },
       include: {
-        owner: { select: { id: true, username: true } },
+        org: { select: { id: true, slug: true } },
         versions: { orderBy: { number: 'desc' } },
         _count: { select: { comments: true } },
       },
     })
 
     if (!asset) throw new NotFoundException()
-    this.assertVisible(asset, requestingUserId)
+    await this.assertVisible(asset, requestingUserId)
 
     const targetVersion = versionNumber
       ? asset.versions.find((v) => v.number === versionNumber)
@@ -211,14 +212,18 @@ export class AssetsService {
     if (!targetVersion) throw new NotFoundException()
 
     const contentUrl = versionNumber
-      ? `/api/public/${username}/${slug}/v/${versionNumber}/content`
-      : `/api/public/${username}/${slug}/content`
+      ? `/api/public/${orgSlug}/${slug}/v/${versionNumber}/content`
+      : `/api/public/${orgSlug}/${slug}/content`
+
+    const isOwnerMember = requestingUserId
+      ? !!(await this.prisma.orgMember.findFirst({ where: { orgId: asset.orgId, userId: requestingUserId } }))
+      : false
 
     return {
       assetId: asset.id,
       slug: asset.slug,
       title: asset.title ?? asset.slug,
-      owner: { username: asset.owner.username },
+      owner: { username: asset.org.slug },
       latestVersion: asset.versions[0]?.number ?? 1,
       currentVersion: {
         number: targetVersion.number,
@@ -230,21 +235,20 @@ export class AssetsService {
       },
       commentCount: asset._count.comments,
       visibility: asset.visibility,
-      isOwner: requestingUserId === asset.owner.id,
+      isOwner: isOwnerMember,
     }
   }
 
-  async streamContent(username: string, slug: string, versionNumber?: number, requestingUserId?: string) {
+  async streamContent(orgSlug: string, slug: string, versionNumber?: number, requestingUserId?: string) {
     const asset = await this.prisma.asset.findFirst({
-      where: { owner: { username }, slug },
+      where: { org: { slug: orgSlug }, slug },
       include: {
-        owner: { select: { id: true } },
         versions: { orderBy: { number: 'desc' } },
       },
     })
 
     if (!asset) throw new NotFoundException()
-    this.assertVisible(asset, requestingUserId)
+    await this.assertVisible(asset, requestingUserId)
 
     const targetVersion = versionNumber
       ? asset.versions.find((v) => v.number === versionNumber)
@@ -255,9 +259,16 @@ export class AssetsService {
     return this.storage.getObject(targetVersion.renderedPath ?? targetVersion.storagePath)
   }
 
-  private assertVisible(asset: { visibility: Visibility; ownerId: string }, userId?: string) {
-    if (asset.visibility === Visibility.PRIVATE && asset.ownerId !== userId) {
-      throw new NotFoundException()
+  private async assertVisible(
+    asset: { visibility: Visibility; orgId: string },
+    userId?: string,
+  ) {
+    if (asset.visibility === Visibility.PRIVATE) {
+      if (!userId) throw new NotFoundException()
+      const member = await this.prisma.orgMember.findFirst({
+        where: { orgId: asset.orgId, userId },
+      })
+      if (!member) throw new NotFoundException()
     }
   }
 
@@ -273,7 +284,7 @@ export class AssetsService {
       thumbnailUrl: latest?.thumbnailPath ? this.storage.getPublicUrl(latest.thumbnailPath) : null,
       createdAt: asset.createdAt,
       updatedAt: asset.updatedAt,
-      owner: asset.owner,
+      owner: { username: asset.org.slug },
     }
   }
 }

@@ -85,10 +85,12 @@ export class CommentsService {
     if (!comment) throw new NotFoundException()
 
     const isAuthor = comment.authorId === userId
-    const isOwner = comment.asset.ownerId === userId
+    const isOrgMember = !!(await this.prisma.orgMember.findFirst({
+      where: { userId, orgId: comment.asset.orgId },
+    }))
 
     if (dto.body !== undefined && !isAuthor) throw new ForbiddenException()
-    if (dto.resolved !== undefined && !isAuthor && !isOwner) throw new ForbiddenException()
+    if (dto.resolved !== undefined && !isAuthor && !isOrgMember) throw new ForbiddenException()
 
     return this.prisma.comment.update({
       where: { id: commentId },
@@ -108,8 +110,10 @@ export class CommentsService {
     if (!comment) throw new NotFoundException()
 
     const isAuthor = comment.authorId === userId
-    const isOwner = comment.asset.ownerId === userId
-    if (!isAuthor && !isOwner) throw new ForbiddenException()
+    const isOrgMember = !!(await this.prisma.orgMember.findFirst({
+      where: { userId, orgId: comment.asset.orgId },
+    }))
+    if (!isAuthor && !isOrgMember) throw new ForbiddenException()
 
     await this.prisma.comment.delete({ where: { id: commentId } })
   }
