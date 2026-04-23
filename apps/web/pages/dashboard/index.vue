@@ -35,11 +35,15 @@ async function deleteAsset(id: string) {
 
       <div v-if="pending" class="text-zinc-500">Loading…</div>
 
-      <div v-else-if="!data?.items?.length" class="text-center py-20 text-zinc-500">
-        <p class="text-lg mb-2">No assets yet.</p>
-        <p class="text-sm font-mono bg-zinc-900 inline-block px-4 py-2 rounded-lg">
-          curl -X POST .../api/orgs/{{ orgSlug }}/assets -F "file=@deck.html"
-        </p>
+      <div v-else-if="!data?.items?.length" class="text-center py-24 space-y-3">
+        <p class="text-zinc-300 font-medium">No assets yet</p>
+        <p class="text-zinc-500 text-sm">Create an API key, then upload your first file via curl or the MCP server.</p>
+        <NuxtLink
+          to="/dashboard/keys"
+          class="inline-block mt-2 px-4 py-2 bg-white text-zinc-950 rounded-lg text-sm font-semibold hover:bg-zinc-100 transition"
+        >
+          Create an API key
+        </NuxtLink>
       </div>
 
       <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
