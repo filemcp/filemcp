@@ -32,7 +32,7 @@ async function deleteComment(id: string) {
     </div>
     <div class="flex-1 overflow-y-auto">
       <div v-if="!comments.length" class="px-4 py-8 text-zinc-500 text-sm text-center">
-        No comments yet. Click "Comment" to add one.
+        No comments yet. Click anywhere on the asset to add one.
       </div>
       <CommentThread
         v-for="(comment, i) in comments"

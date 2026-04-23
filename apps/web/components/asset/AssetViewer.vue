@@ -24,6 +24,16 @@ const route = useRoute()
 const commentStore = useCommentStore()
 const panelOpen = ref(true)
 
+function toggleComments() {
+  if (panelOpen.value && commentStore.commentMode) {
+    panelOpen.value = false
+    commentStore.commentMode = false
+  } else {
+    panelOpen.value = true
+    commentStore.commentMode = true
+  }
+}
+
 const { data: commentsData, refresh: refreshComments } = await useApi<Comment[]>(
   `/assets/${props.asset.assetId}/comments`,
 )
@@ -56,25 +66,27 @@ function handleViewerClick(event: { xPct: number; yPct: number; selectorHint: st
           <option v-for="v in asset.latestVersion" :key="v" :value="v">v{{ v }}</option>
         </select>
 
-        <!-- Comment mode toggle -->
+        <!-- Comments toggle -->
         <button
           :class="[
-            'px-3 py-1.5 rounded text-sm font-medium transition',
-            commentStore.commentMode
+            'relative p-2 rounded transition',
+            panelOpen
               ? 'bg-amber-500 text-zinc-950'
               : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700',
           ]"
-          @click="commentStore.toggleCommentMode()"
+          title="Comments"
+          @click="toggleComments"
         >
-          {{ commentStore.commentMode ? 'Exit comment mode' : 'Comment (C)' }}
-        </button>
-
-        <!-- Panel toggle -->
-        <button
-          class="px-3 py-1.5 bg-zinc-800 text-zinc-300 rounded text-sm hover:bg-zinc-700 transition"
-          @click="panelOpen = !panelOpen"
-        >
-          {{ commentStore.comments.length }} comments
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+          <span
+            v-if="commentStore.comments.length"
+            :class="[
+              'absolute -top-1 -right-1 text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center leading-none',
+              panelOpen ? 'bg-zinc-950 text-amber-400' : 'bg-amber-500 text-zinc-950',
+            ]"
+          >{{ commentStore.comments.length }}</span>
         </button>
       </div>
     </header>
