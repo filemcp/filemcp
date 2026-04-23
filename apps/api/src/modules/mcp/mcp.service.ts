@@ -137,7 +137,8 @@ export class McpService {
       const token = req.headers.authorization
       const apiBase = `${req.protocol}://${req.get('host')}/api`
 
-      const resolvedSlug = slug ?? filename.replace(/\.[^.]+$/, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+      const baseSlug = filename.replace(/\.[^.]+$/, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+      const resolvedSlug = slug ?? `${baseSlug}-${ext}`
 
       const fields = [`-F "file=@${filepath};type=${mime}"`, `-F "slug=${resolvedSlug}"`]
       const cmd = `curl -s -X POST "${apiBase}/orgs/${orgSlug}/assets" -H "Authorization: ${token}" ${fields.join(' ')}`
