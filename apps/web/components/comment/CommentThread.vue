@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Comment } from '@cdnmcp/types'
 
-defineProps<{
+const props = defineProps<{
   comment: Comment
   index: number
   isOwner: boolean
@@ -9,26 +9,22 @@ defineProps<{
   assetId: string
 }>()
 
-defineEmits<{
-  click: []
-  resolve: []
-  delete: []
-  refresh: []
-}>()
 
 const replyBody = ref('')
 const replying = ref(false)
 const auth = useAuthStore()
+const emit = defineEmits<{ click: []; resolve: []; delete: []; refresh: [] }>()
 
 async function submitReply(commentId: string) {
   if (!replyBody.value.trim()) return
-  await $api(`/assets/${commentId}/comments`, {
+  await $api(`/assets/${props.assetId}/comments`, {
     method: 'POST',
     body: JSON.stringify({ body: replyBody.value, parentId: commentId }),
     headers: { 'Content-Type': 'application/json' },
   })
   replyBody.value = ''
   replying.value = false
+  emit('refresh')
 }
 </script>
 
