@@ -35,6 +35,7 @@ export const useAuthStore = defineStore('auth', {
       if (import.meta.client) {
         localStorage.setItem('access_token', token)
         if (user) localStorage.setItem('auth_user', JSON.stringify(user))
+        document.cookie = `access_token=${token}; path=/; SameSite=Lax; max-age=${7 * 24 * 3600}`
       }
     },
 
@@ -82,6 +83,7 @@ export const useAuthStore = defineStore('auth', {
         localStorage.removeItem('auth_user')
         localStorage.removeItem('auth_orgs')
         localStorage.removeItem('auth_active_org')
+        document.cookie = 'access_token=; path=/; max-age=0'
       }
     },
   },

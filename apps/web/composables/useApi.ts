@@ -4,6 +4,7 @@ import { type MaybeRefOrGetter, toValue } from 'vue'
 export function useApi<T>(path: MaybeRefOrGetter<string | null>, options?: AsyncDataOptions<T>) {
   const config = useRuntimeConfig()
   const auth = useAuthStore()
+  const tokenCookie = useCookie<string | null>('access_token')
 
   const resolvedPath = computed(() => toValue(path))
 
@@ -13,8 +14,9 @@ export function useApi<T>(path: MaybeRefOrGetter<string | null>, options?: Async
       const p = toValue(path)
       if (!p) return null as unknown as T
       const apiUrl = import.meta.server ? config.apiUrl : config.public.apiUrl
+      const token = auth.token ?? tokenCookie.value
       return $fetch<T>(`${apiUrl}${p}`, {
-        headers: auth.token ? { Authorization: `Bearer ${auth.token}` } : {},
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
       })
     },
     { ...options, watch: [resolvedPath, ...(options?.watch ?? [])] },
