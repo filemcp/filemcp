@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common'
+import { Visibility } from '@prisma/client'
 import { PrismaService } from '../../prisma/prisma.service'
 import { CreateCommentDto } from './dto/create-comment.dto'
 import { UpdateCommentDto } from './dto/update-comment.dto'
@@ -7,7 +8,11 @@ import { UpdateCommentDto } from './dto/update-comment.dto'
 export class CommentsService {
   constructor(private prisma: PrismaService) {}
 
-  async list(assetId: string, resolved?: boolean) {
+  async list(assetId: string, resolved?: boolean, userId?: string) {
+    const asset = await this.prisma.asset.findUnique({ where: { id: assetId } })
+    if (!asset) throw new NotFoundException()
+    await this.assertVisible(asset, userId)
+
     const where: any = { assetId, parentId: null }
     if (resolved !== undefined) where.resolved = resolved
 
@@ -29,6 +34,7 @@ export class CommentsService {
   async create(assetId: string, dto: CreateCommentDto, userId?: string) {
     const asset = await this.prisma.asset.findUnique({ where: { id: assetId } })
     if (!asset) throw new NotFoundException()
+    await this.assertVisible(asset, userId)
 
     if (!userId && !dto.anonName) {
       throw new BadRequestException('anonName is required for anonymous comments')
@@ -116,6 +122,16 @@ export class CommentsService {
     if (!isAuthor && !isOrgMember) throw new ForbiddenException()
 
     await this.prisma.comment.delete({ where: { id: commentId } })
+  }
+
+  private async assertVisible(asset: { visibility: Visibility; orgId: string }, userId?: string) {
+    if (asset.visibility === Visibility.PRIVATE) {
+      if (!userId) throw new NotFoundException()
+      const member = await this.prisma.orgMember.findFirst({
+        where: { orgId: asset.orgId, userId },
+      })
+      if (!member) throw new NotFoundException()
+    }
   }
 
   private format(comment: any) {

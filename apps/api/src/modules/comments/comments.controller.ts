@@ -24,13 +24,15 @@ export class CommentsController {
   constructor(private comments: CommentsService) {}
 
   @Get('assets/:assetId/comments')
+  @UseGuards(OptionalAuthGuard)
   list(
     @Param('assetId') assetId: string,
     @Query('resolved') resolved?: string,
+    @Request() req: { user?: { id: string } } = {} as any,
   ) {
     const resolvedFilter =
       resolved === 'true' ? true : resolved === 'false' ? false : undefined
-    return this.comments.list(assetId, resolvedFilter)
+    return this.comments.list(assetId, resolvedFilter, req.user?.id)
   }
 
   @Post('assets/:assetId/comments')

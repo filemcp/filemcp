@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
+import { Visibility } from '@prisma/client'
 import { PrismaService } from '../../prisma/prisma.service'
 import { StorageService } from '../storage/storage.service'
 
@@ -9,7 +10,11 @@ export class VersionsService {
     private storage: StorageService,
   ) {}
 
-  async list(assetId: string) {
+  async list(assetId: string, userId?: string) {
+    const asset = await this.prisma.asset.findUnique({ where: { id: assetId } })
+    if (!asset) throw new NotFoundException()
+    await this.assertVisible(asset, userId)
+
     const versions = await this.prisma.version.findMany({
       where: { assetId },
       orderBy: { number: 'asc' },
@@ -25,7 +30,11 @@ export class VersionsService {
     }))
   }
 
-  async getContent(assetId: string, versionNumber: number) {
+  async getContent(assetId: string, versionNumber: number, userId?: string) {
+    const asset = await this.prisma.asset.findUnique({ where: { id: assetId } })
+    if (!asset) throw new NotFoundException()
+    await this.assertVisible(asset, userId)
+
     const version = await this.prisma.version.findUnique({
       where: { assetId_number: { assetId, number: versionNumber } },
     })
@@ -33,5 +42,15 @@ export class VersionsService {
 
     const path = version.renderedPath ?? version.storagePath
     return this.storage.getObject(path)
+  }
+
+  private async assertVisible(asset: { visibility: Visibility; orgId: string }, userId?: string) {
+    if (asset.visibility === Visibility.PRIVATE) {
+      if (!userId) throw new NotFoundException()
+      const member = await this.prisma.orgMember.findFirst({
+        where: { orgId: asset.orgId, userId },
+      })
+      if (!member) throw new NotFoundException()
+    }
   }
 }
