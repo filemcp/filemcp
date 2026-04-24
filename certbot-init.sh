@@ -31,9 +31,6 @@ openssl req -x509 -nodes -newkey rsa:2048 -days 1 \
 echo "Starting nginx..."
 cd /srv/docker && docker compose up -d nginx
 
-echo "Removing dummy cert..."
-rm -rf "$CERTBOT_CERTS/live/$CERT_NAME"
-
 echo "Requesting cert from Let's Encrypt..."
 docker run --rm \
   -v "$CERTBOT_WWW:/var/www/certbot" \
