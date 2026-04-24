@@ -5,6 +5,7 @@ import {
   BadRequestException,
   PayloadTooLargeException,
 } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
 import { FileType, Visibility } from '@prisma/client'
 import { PrismaService } from '../../prisma/prisma.service'
 import { StorageService } from '../storage/storage.service'
@@ -14,7 +15,7 @@ import { UploadAssetDto } from './dto/upload-asset.dto'
 import { UpdateAssetDto } from './dto/update-asset.dto'
 import { generateSlug } from '../../utils/slug'
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
+const DEFAULT_MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
 
 const MIME_TO_FILE_TYPE: Record<string, FileType> = {
   'text/html': FileType.HTML,
@@ -46,6 +47,7 @@ export class AssetsService {
     private storage: StorageService,
     private render: RenderService,
     private thumbnail: ThumbnailService,
+    private config: ConfigService,
   ) {}
 
   async upload(
@@ -53,9 +55,12 @@ export class AssetsService {
     userId: string,
     file: { buffer: Buffer; mimetype: string; originalname: string; size: number },
     dto: UploadAssetDto,
+    options?: { maxBytes?: number },
   ) {
-    if (file.size > MAX_FILE_SIZE) {
-      throw new PayloadTooLargeException('File exceeds 10MB limit')
+    const maxBytes = options?.maxBytes ?? DEFAULT_MAX_FILE_SIZE
+    if (file.size > maxBytes) {
+      const mb = Math.round(maxBytes / (1024 * 1024))
+      throw new PayloadTooLargeException(`File exceeds ${mb}MB limit`)
     }
 
     const fileType = MIME_TO_FILE_TYPE[file.mimetype]
@@ -65,6 +70,23 @@ export class AssetsService {
 
     const org = await this.prisma.organization.findUniqueOrThrow({ where: { id: orgId } })
     const slug = dto.slug ?? generateSlug()
+
+    // Enforce org asset limit for new assets (upsert on existing slug is always allowed)
+    const existingAsset = await this.prisma.asset.findUnique({ where: { orgId_slug: { orgId, slug } } })
+    if (!existingAsset) {
+      const [assetCount, memberCount] = await Promise.all([
+        this.prisma.asset.count({ where: { orgId } }),
+        this.prisma.orgMember.count({ where: { orgId } }),
+      ])
+      const baseLimit = this.config.get<number>('ORG_ASSET_LIMIT', 10)
+      const perMember = this.config.get<number>('ORG_ASSET_LIMIT_PER_MEMBER', 5)
+      const limit = baseLimit + memberCount * perMember
+      if (assetCount >= limit) {
+        throw new ForbiddenException(
+          `Asset limit reached (${limit}). Invite more members to unlock additional assets (+${perMember} per member).`,
+        )
+      }
+    }
 
     const asset = await this.prisma.asset.upsert({
       where: { orgId_slug: { orgId, slug } },

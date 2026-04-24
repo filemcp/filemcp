@@ -1,5 +1,6 @@
 // @ts-nocheck
 import { Injectable } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
 import type { Request, Response } from 'express'
 import { OrgRole } from '@prisma/client'
 import { AssetsService } from '../assets/assets.service'
@@ -9,7 +10,7 @@ const TOOLS = [
   {
     name: 'upload_asset',
     description:
-      'Upload a file to cdnmcp and get back a shareable URL. Returns a curl command — run it with Bash to perform the upload. Supports HTML, Markdown, JSON, CSS, JS, SVG, and plain text. Requires WRITE or OWNER role.',
+      'Upload a file to cdnmcp and get back a shareable URL. Returns a curl command — run it with Bash to perform the upload. Supports HTML, Markdown, JSON, CSS, JS, SVG, and plain text. Requires WRITE or OWNER role. Maximum file size: 5MB.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -74,6 +75,7 @@ export class McpService {
   constructor(
     private assets: AssetsService,
     private prisma: PrismaService,
+    private config: ConfigService,
   ) {}
 
   async handle(req: Request & { user: any }, res: Response) {
@@ -140,8 +142,9 @@ export class McpService {
       const baseSlug = filename.replace(/\.[^.]+$/, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
       const resolvedSlug = slug ?? `${baseSlug}-${ext}`
 
+      const mcpMaxMb = this.config.get<number>('MCP_MAX_FILE_SIZE_MB', 5)
       const fields = [`-F "file=@${filepath};type=${mime}"`, `-F "slug=${resolvedSlug}"`]
-      const cmd = `curl -s -X POST "${apiBase}/orgs/${orgSlug}/assets" -H "Authorization: ${token}" ${fields.join(' ')}`
+      const cmd = `curl -s -X POST "${apiBase}/orgs/${orgSlug}/assets" -H "Authorization: ${token}" -H "X-Upload-Source: mcp" ${fields.join(' ')}`
 
       console.log('[MCP] upload_asset curl', { filepath, filename, slug, orgSlug })
 
@@ -149,7 +152,7 @@ export class McpService {
         content: [
           {
             type: 'text',
-            text: `Run this command to upload:\n\n${cmd}\n\nThe JSON response will contain the asset \`url\` and \`versionUrl\`.`,
+            text: `Run this command to upload (max ${mcpMaxMb}MB):\n\n${cmd}\n\nThe JSON response will contain the asset \`url\` and \`versionUrl\`.`,
           },
         ],
       }

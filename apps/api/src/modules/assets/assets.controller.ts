@@ -7,6 +7,7 @@ import {
   Param,
   Body,
   Query,
+  Headers,
   UseGuards,
   UseInterceptors,
   UploadedFile,
@@ -15,6 +16,7 @@ import {
   ParseIntPipe,
   DefaultValuePipe,
 } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
 import { FileInterceptor } from '@nestjs/platform-express'
 import { ApiTags, ApiBearerAuth, ApiConsumes } from '@nestjs/swagger'
 import { OrgRole } from '@prisma/client'
@@ -30,7 +32,10 @@ import { RequireOrgRole } from '../auth/decorators/require-org-role.decorator'
 @UseGuards(AnyAuthGuard, OrgRoleGuard)
 @ApiBearerAuth()
 export class AssetsController {
-  constructor(private assets: AssetsService) {}
+  constructor(
+    private assets: AssetsService,
+    private config: ConfigService,
+  ) {}
 
   @Post()
   @RequireOrgRole(OrgRole.WRITE)
@@ -41,8 +46,12 @@ export class AssetsController {
     @Request() req: { user: AuthUser },
     @UploadedFile() file: Express.Multer.File,
     @Body() dto: UploadAssetDto,
+    @Headers('x-upload-source') uploadSource?: string,
   ) {
-    return this.assets.upload(req.user.orgId!, req.user.id, file, dto)
+    const options = uploadSource === 'mcp'
+      ? { maxBytes: this.config.get<number>('MCP_MAX_FILE_SIZE_MB', 5) * 1024 * 1024 }
+      : undefined
+    return this.assets.upload(req.user.orgId!, req.user.id, file, dto, options)
   }
 
   @Get()

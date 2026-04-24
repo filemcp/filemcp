@@ -8,13 +8,17 @@ import {
 import { randomBytes } from 'crypto'
 import * as bcrypt from 'bcryptjs'
 import { OrgRole } from '@prisma/client'
+import { ConfigService } from '@nestjs/config'
 import { PrismaService } from '../../prisma/prisma.service'
 import { CreateOrgDto } from './dto/create-org.dto'
 import { InviteMemberDto } from './dto/invite-member.dto'
 
 @Injectable()
 export class OrgsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private config: ConfigService,
+  ) {}
 
   async create(userId: string, dto: CreateOrgDto) {
     const existing = await this.prisma.organization.findUnique({ where: { slug: dto.slug } })
@@ -47,23 +51,36 @@ export class OrgsService {
   async getDetail(userId: string, orgSlug: string) {
     const org = await this.prisma.organization.findUnique({
       where: { slug: orgSlug },
-      include: { members: { include: { user: { select: { id: true, username: true, email: true } } } } },
+      include: {
+        members: { include: { user: { select: { id: true, username: true, email: true } } } },
+        _count: { select: { assets: true } },
+      },
     })
     if (!org) throw new NotFoundException()
 
     const requester = org.members.find((m) => m.userId === userId)
     if (!requester) throw new ForbiddenException()
 
+    const baseLimit = this.config.get<number>('ORG_ASSET_LIMIT', 10)
+    const perMember = this.config.get<number>('ORG_ASSET_LIMIT_PER_MEMBER', 5)
+    const memberCount = org.members.length
+    const assetLimit = baseLimit + memberCount * perMember
+
     return {
       id: org.id,
       slug: org.slug,
       name: org.name,
+      description: org.description,
       members: org.members.map((m) => ({
         id: m.id,
         user: m.user,
         role: m.role,
         joinedAt: m.createdAt,
       })),
+      assetCount: org._count.assets,
+      assetLimit,
+      assetLimitBase: baseLimit,
+      assetLimitPerMember: perMember,
     }
   }
 

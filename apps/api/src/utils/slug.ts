@@ -7,3 +7,13 @@ export function generateSlug(): string {
   const suffix = Math.floor(Math.random() * 900) + 100
   return `${adj}-${noun}-${suffix}`
 }
+
+export function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '') // strip accents
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 48) // keep URLs reasonable
+}

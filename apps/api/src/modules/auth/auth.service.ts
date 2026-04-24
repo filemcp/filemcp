@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config'
 import * as bcrypt from 'bcryptjs'
 import { PrismaService } from '../../prisma/prisma.service'
 import { RegisterDto } from './dto/register.dto'
+import { slugify } from '../../utils/slug'
 
 @Injectable()
 export class AuthService {
@@ -28,9 +29,17 @@ export class AuthService {
       data: { email: dto.email, username: dto.username, passwordHash },
     })
 
-    // Auto-create a personal org with the same slug as the username
+    const orgName = dto.orgName?.trim() || user.username
+    const orgSlug = slugify(orgName) || user.username
+
+    const slugTaken = await this.prisma.organization.findUnique({ where: { slug: orgSlug } })
+    if (slugTaken) {
+      await this.prisma.user.delete({ where: { id: user.id } })
+      throw new ConflictException('Workspace name is already taken, please choose a different one')
+    }
+
     const org = await this.prisma.organization.create({
-      data: { slug: user.username, name: user.username },
+      data: { slug: orgSlug, name: orgName },
     })
     await this.prisma.orgMember.create({
       data: { orgId: org.id, userId: user.id, role: 'OWNER' },

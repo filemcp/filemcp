@@ -6,8 +6,24 @@ const auth = useAuthStore()
 const email = ref((route.query.prefill_email as string) ?? '')
 const username = ref('')
 const password = ref('')
+const orgName = ref('')
+const orgNameEdited = ref(false)
 const error = ref('')
 const loading = ref(false)
+
+watch(username, (val) => {
+  if (!orgNameEdited.value) orgName.value = val
+})
+
+const orgSlugPreview = computed(() =>
+  (orgName.value || username.value)
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 48),
+)
 
 async function submit() {
   error.value = ''
@@ -16,7 +32,15 @@ async function submit() {
     const config = useRuntimeConfig()
     const res = await $fetch<{ accessToken: string; user: any }>(
       `${config.public.apiUrl}/auth/register`,
-      { method: 'POST', body: { email: email.value, username: username.value, password: password.value } },
+      {
+        method: 'POST',
+        body: {
+          email: email.value,
+          username: username.value,
+          password: password.value,
+          orgName: orgName.value.trim() || undefined,
+        },
+      },
     )
     auth.setSession(res.accessToken, res.user)
     await navigateTo('/dashboard')
@@ -45,6 +69,19 @@ async function submit() {
           placeholder="Username"
           class="w-full px-4 py-3 bg-zinc-900 text-white rounded-lg border border-zinc-800 focus:outline-none focus:border-zinc-600"
         />
+        <div class="space-y-1">
+          <input
+            v-model="orgName"
+            type="text"
+            placeholder="Workspace name"
+            class="w-full px-4 py-3 bg-zinc-900 text-white rounded-lg border border-zinc-800 focus:outline-none focus:border-zinc-600"
+            @input="orgNameEdited = true"
+          />
+          <p class="text-xs text-zinc-600 px-1">
+            Your assets will live at
+            <span class="text-zinc-400 font-mono">cdnmcp.com/u/{{ orgSlugPreview || '…' }}/</span>
+          </p>
+        </div>
         <input
           v-model="password"
           type="password"

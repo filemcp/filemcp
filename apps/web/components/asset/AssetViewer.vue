@@ -23,6 +23,7 @@ const props = defineProps<{
 const route = useRoute()
 const commentStore = useCommentStore()
 const panelOpen = ref(true)
+commentStore.commentMode = true
 
 function toggleComments() {
   if (panelOpen.value && commentStore.commentMode) {
@@ -105,7 +106,9 @@ function handleViewerClick(event: { xPct: number; yPct: number; selectorHint: st
         <AssetMarkdownRenderer
           v-else-if="asset.currentVersion.fileType === 'MARKDOWN'"
           :content-url="asset.currentVersion.contentUrl"
+          :comment-mode="commentStore.commentMode"
           :comments="commentStore.comments"
+          @click="handleViewerClick"
         />
         <AssetJsonRenderer
           v-else-if="asset.currentVersion.fileType === 'JSON'"

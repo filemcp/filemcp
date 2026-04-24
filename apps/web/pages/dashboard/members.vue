@@ -8,12 +8,17 @@ const { data: org, refresh } = useApi<{
   id: string
   slug: string
   name: string
+  description: string | null
   members: Array<{
     id: string
     role: 'OWNER' | 'WRITE' | 'READ'
     joinedAt: string
     user: { id: string; username: string; email: string }
   }>
+  assetCount: number
+  assetLimit: number
+  assetLimitBase: number
+  assetLimitPerMember: number
 }>(computed(() => orgSlug.value ? `/orgs/${orgSlug.value}` : null))
 
 const inviteInput = ref('')
@@ -74,6 +79,26 @@ const ROLE_LABELS: Record<string, string> = { OWNER: 'Owner', WRITE: 'Write', RE
       <div class="flex items-center justify-between">
         <h1 class="text-xl font-semibold">Members</h1>
         <span class="text-zinc-500 text-sm font-mono">{{ orgSlug }}</span>
+      </div>
+
+      <!-- Asset limit info -->
+      <div v-if="org" class="bg-zinc-900 rounded-xl px-5 py-4 border border-zinc-800 space-y-1">
+        <div class="flex items-center justify-between">
+          <span class="text-sm font-medium text-zinc-200">Asset limit</span>
+          <span class="text-sm font-mono text-zinc-300">{{ org.assetCount }} / {{ org.assetLimit }}</span>
+        </div>
+        <p class="text-xs text-zinc-500">
+          {{ org.assetLimitBase }} base + {{ org.assetLimitPerMember }} per member × {{ org.members.length }}
+          {{ org.members.length === 1 ? 'member' : 'members' }}.
+          Invite more members to unlock additional assets.
+        </p>
+        <div class="mt-2 h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+          <div
+            class="h-full rounded-full transition-all"
+            :class="org.assetCount >= org.assetLimit ? 'bg-red-500' : 'bg-amber-500'"
+            :style="{ width: `${Math.min((org.assetCount / org.assetLimit) * 100, 100)}%` }"
+          />
+        </div>
       </div>
 
       <!-- Invite form (owners only) -->
