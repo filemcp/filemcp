@@ -14,11 +14,11 @@ if [ -z "$EMAIL" ]; then
 fi
 
 if [ "$ENVIRONMENT" = "staging" ]; then
-  DOMAINS=("staging.filemcp.ai" "api.staging.filemcp.ai")
-  CERT_NAME="staging.filemcp.ai"
+  DOMAINS=("staging.filemcp.com" "api.staging.filemcp.com")
+  CERT_NAME="staging.filemcp.com"
 else
-  DOMAINS=("filemcp.ai" "www.filemcp.ai" "api.filemcp.ai")
-  CERT_NAME="filemcp.ai"
+  DOMAINS=("filemcp.com" "www.filemcp.com" "api.filemcp.com")
+  CERT_NAME="filemcp.com"
 fi
 
 COMPOSE_DIR="/srv/docker"

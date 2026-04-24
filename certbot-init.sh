@@ -11,11 +11,11 @@ if [ -z "$EMAIL" ]; then
 fi
 
 if [ "$ENVIRONMENT" = "staging" ]; then
-  DOMAINS="-d staging.filemcp.ai -d api.staging.filemcp.ai"
-  CERT_NAME="staging.filemcp.ai"
+  DOMAINS="-d staging.filemcp.com -d api.staging.filemcp.com"
+  CERT_NAME="staging.filemcp.com"
 else
-  DOMAINS="-d filemcp.ai -d www.filemcp.ai -d api.filemcp.ai"
-  CERT_NAME="filemcp.ai"
+  DOMAINS="-d filemcp.com -d www.filemcp.com -d api.filemcp.com"
+  CERT_NAME="filemcp.com"
 fi
 
 CERTBOT_WWW=$(docker volume inspect docker_certbot_www --format '{{ .Mountpoint }}')
