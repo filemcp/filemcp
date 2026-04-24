@@ -65,11 +65,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 remote_exec() {
   local command="$1"
-  if [ "$SSH_USERNAME" = "docker" ]; then
-    ssh -i "$SSH_KEY_PATH" -o StrictHostKeyChecking=no "$SSH_USERNAME@$TARGET_HOST" "bash -c '$command'"
-  else
-    ssh -i "$SSH_KEY_PATH" -o StrictHostKeyChecking=no "$SSH_USERNAME@$TARGET_HOST" "sudo -u docker -i -- bash -c '$command'"
-  fi
+  ssh -i "$SSH_KEY_PATH" -o StrictHostKeyChecking=no "$SSH_USERNAME@$TARGET_HOST" "bash -c '$command'"
 }
 
 echo "========== Releasing to $ENVIRONMENT ($TARGET_HOST) =========="
