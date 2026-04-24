@@ -100,6 +100,7 @@ remote_exec "cat > /srv/docker/docker-compose.yml" < "$processed_compose"
 echo "Copying nginx config to $TARGET_HOST..."
 remote_exec "mkdir -p /srv/docker/nginx"
 remote_exec "cat > /srv/docker/nginx/default.conf" < "${SCRIPT_DIR}/nginx/${ENVIRONMENT}.conf"
+remote_exec "cd /srv/docker && docker compose exec nginx nginx -s reload 2>/dev/null || true"
 
 echo "Copying certbot-init script to $TARGET_HOST..."
 remote_exec "cat > /srv/docker/certbot-init.sh" < "${SCRIPT_DIR}/certbot-init.sh"
