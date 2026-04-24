@@ -78,9 +78,9 @@ export class AssetsService {
         this.prisma.asset.count({ where: { orgId } }),
         this.prisma.orgMember.count({ where: { orgId } }),
       ])
-      const baseLimit = this.config.get<number>('ORG_ASSET_LIMIT', 10)
-      const perMember = this.config.get<number>('ORG_ASSET_LIMIT_PER_MEMBER', 5)
-      const limit = baseLimit + memberCount * perMember
+      const baseLimit = parseInt(this.config.get('ORG_ASSET_LIMIT', '10'), 10)
+      const perMember = parseInt(this.config.get('ORG_ASSET_LIMIT_PER_MEMBER', '5'), 10)
+      const limit = baseLimit + Math.max(0, memberCount - 1) * perMember
       if (assetCount >= limit) {
         throw new ForbiddenException(
           `Asset limit reached (${limit}). Invite more members to unlock additional assets (+${perMember} per member).`,

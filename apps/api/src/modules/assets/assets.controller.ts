@@ -49,7 +49,7 @@ export class AssetsController {
     @Headers('x-upload-source') uploadSource?: string,
   ) {
     const options = uploadSource === 'mcp'
-      ? { maxBytes: this.config.get<number>('MCP_MAX_FILE_SIZE_MB', 5) * 1024 * 1024 }
+      ? { maxBytes: parseInt(this.config.get('MCP_MAX_FILE_SIZE_MB', '5'), 10) * 1024 * 1024 }
       : undefined
     return this.assets.upload(req.user.orgId!, req.user.id, file, dto, options)
   }

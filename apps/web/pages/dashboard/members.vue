@@ -82,23 +82,21 @@ const ROLE_LABELS: Record<string, string> = { OWNER: 'Owner', WRITE: 'Write', RE
       </div>
 
       <!-- Asset limit info -->
-      <div v-if="org" class="bg-zinc-900 rounded-xl px-5 py-4 border border-zinc-800 space-y-1">
+      <div v-if="org" class="bg-zinc-900 rounded-xl px-5 py-4 border border-zinc-800 space-y-3">
         <div class="flex items-center justify-between">
-          <span class="text-sm font-medium text-zinc-200">Asset limit</span>
-          <span class="text-sm font-mono text-zinc-300">{{ org.assetCount }} / {{ org.assetLimit }}</span>
+          <span class="text-sm font-medium text-zinc-200">Assets</span>
+          <span class="text-sm text-zinc-400">{{ org.assetCount }} of {{ org.assetLimit }} used</span>
         </div>
-        <p class="text-xs text-zinc-500">
-          {{ org.assetLimitBase }} base + {{ org.assetLimitPerMember }} per member × {{ org.members.length }}
-          {{ org.members.length === 1 ? 'member' : 'members' }}.
-          Invite more members to unlock additional assets.
-        </p>
-        <div class="mt-2 h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+        <div class="h-1.5 bg-zinc-800 rounded-full overflow-hidden">
           <div
             class="h-full rounded-full transition-all"
             :class="org.assetCount >= org.assetLimit ? 'bg-red-500' : 'bg-amber-500'"
             :style="{ width: `${Math.min((org.assetCount / org.assetLimit) * 100, 100)}%` }"
           />
         </div>
+        <p class="text-xs text-zinc-500">
+          Each invited member adds {{ org.assetLimitPerMember }} slots. You have {{ org.assetLimit }} total ({{ org.assetLimitBase }} base{{ org.members.length > 1 ? ` + ${org.assetLimitPerMember} × ${org.members.length - 1} invited` : '' }}).
+        </p>
       </div>
 
       <!-- Invite form (owners only) -->

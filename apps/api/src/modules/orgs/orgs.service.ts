@@ -61,10 +61,10 @@ export class OrgsService {
     const requester = org.members.find((m) => m.userId === userId)
     if (!requester) throw new ForbiddenException()
 
-    const baseLimit = this.config.get<number>('ORG_ASSET_LIMIT', 10)
-    const perMember = this.config.get<number>('ORG_ASSET_LIMIT_PER_MEMBER', 5)
+    const baseLimit = parseInt(this.config.get('ORG_ASSET_LIMIT', '10'), 10)
+    const perMember = parseInt(this.config.get('ORG_ASSET_LIMIT_PER_MEMBER', '5'), 10)
     const memberCount = org.members.length
-    const assetLimit = baseLimit + memberCount * perMember
+    const assetLimit = baseLimit + Math.max(0, memberCount - 1) * perMember
 
     return {
       id: org.id,
