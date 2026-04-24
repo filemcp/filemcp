@@ -186,17 +186,13 @@ Privacy is per-asset (not per-version). All versions of an asset share the same 
 
 ---
 
-### F8 — MCP Server (v1.5 — deferred)
+### F8 — MCP Server (shipped)
 
-An MCP server so Claude Code and other MCP-compatible clients can upload assets without leaving the AI conversation:
+An MCP server so Claude Code and other MCP-compatible clients can upload assets without leaving the AI conversation. Mounted at `POST /api/mcp`, auth via API key.
 
-```
-Tool: filemcp_upload
-Input: { content: string, filename: string, slug?: string }
-Output: { url: string, version: number }
-```
+Tools: `upload_asset`, `list_assets`, `get_asset`
 
-This is the long-term ideal UX: generate content inside Claude → upload in one tool call → get URL back inline.
+`upload_asset` returns a `curl` command for the AI to run — the AI executes it with Bash and gets back the asset URL inline.
 
 ---
 
@@ -206,7 +202,7 @@ This is the long-term ideal UX: generate content inside Claude → upload in one
 - Real-time collaborative editing (not a doc editor)
 - Binary file hosting (images, PDFs, video)
 - Custom domains (deferred to v2)
-- Teams / organizations / workspaces (deferred to v2)
+- Advanced org permissions (fine-grained scopes per API key — deferred)
 - Embeds / iframes for third-party sites (deferred)
 - Analytics / view tracking (deferred)
 

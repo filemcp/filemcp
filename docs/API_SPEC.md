@@ -1,6 +1,6 @@
 # API Specification — filemcp
 
-Base URL: `https://filemcp.com/api`
+Base URL: `https://api.filemcp.com/api`
 
 All responses are JSON. Errors follow the shape:
 ```json
@@ -16,14 +16,15 @@ Auth:
 ## Auth
 
 ### POST /auth/register
-Create a new account.
+Create a new account. Automatically creates a personal org (slug = username) with the user as OWNER.
 
 **Body:**
 ```json
 {
   "email": "user@example.com",
   "username": "dexter",
-  "password": "min8chars"
+  "password": "min8chars",
+  "orgName": "My Workspace"   // optional, defaults to username
 }
 ```
 
@@ -31,7 +32,7 @@ Create a new account.
 ```json
 {
   "accessToken": "eyJ...",
-  "user": { "id": "...", "username": "dexter", "email": "user@example.com" }
+  "user": { "id": "...", "username": "dexter", "email": "user@example.com", "createdAt": "..." }
 }
 ```
 
@@ -47,54 +48,118 @@ Create a new account.
 ```json
 {
   "accessToken": "eyJ...",
-  "user": { "id": "...", "username": "dexter" }
+  "user": { "id": "...", "username": "dexter", "email": "user@example.com", "createdAt": "..." }
 }
 ```
-Refresh token set as `Set-Cookie: refresh_token=...; HttpOnly; SameSite=Strict`
 
 ---
 
-### POST /auth/refresh
-Exchange refresh token (from cookie) for new access token.
+## Users
+
+### GET /users/me
+Authenticated user's profile, including all org memberships.
+
+**Auth required**: JWT
 
 **Response 200:**
 ```json
-{ "accessToken": "eyJ..." }
+{
+  "id": "usr_abc",
+  "username": "dexter",
+  "email": "dexter@example.com",
+  "orgs": [
+    { "slug": "dexter", "name": "dexter", "role": "OWNER" },
+    { "slug": "acme", "name": "Acme Corp", "role": "WRITE" }
+  ],
+  "createdAt": "2026-01-01T00:00:00Z"
+}
 ```
 
 ---
 
-### POST /auth/logout
-Revokes the refresh token.
+### GET /users/:username
+Public profile.
+
+**Response 200:**
+```json
+{
+  "username": "dexter",
+  "orgCount": 2,
+  "joinedAt": "2026-01-01T00:00:00Z"
+}
+```
+
+---
+
+## Organizations
+
+### POST /orgs
+Create a new org.
+
+**Auth required**: JWT
+
+**Body:**
+```json
+{ "slug": "acme", "name": "Acme Corp", "description": "optional" }
+```
+
+**Response 201:** org object
+
+---
+
+### GET /orgs
+List orgs the authenticated user is a member of.
+
+**Auth required**: JWT
+
+---
+
+### GET /orgs/:slug
+Get org detail.
+
+**Auth required**: JWT, must be a member
+
+---
+
+### POST /orgs/:slug/members
+Invite a member by username.
+
+**Auth required**: JWT, OWNER role
+
+**Body:**
+```json
+{ "username": "alice", "role": "WRITE" }
+```
+
+---
+
+### PATCH /orgs/:slug/members/:userId
+Update a member's role.
+
+**Auth required**: JWT, OWNER role
+
+**Body:**
+```json
+{ "role": "READ" }
+```
+
+---
+
+### DELETE /orgs/:slug/members/:userId
+Remove a member from the org.
+
+**Auth required**: JWT, OWNER role
+
 **Response 204**: no body
 
 ---
 
 ## API Keys
 
-### GET /keys
-List all API keys for the authenticated user.
+Keys are scoped to an org membership. An API key authenticates as the member in that org with that member's role.
 
-**Auth required**: JWT
-
-**Response 200:**
-```json
-[
-  {
-    "id": "key_abc",
-    "name": "my-cli-key",
-    "lastFourChars": "x7z2",
-    "lastUsedAt": "2026-04-20T10:00:00Z",
-    "createdAt": "2026-01-01T00:00:00Z",
-    "revokedAt": null
-  }
-]
-```
-
----
-
-### POST /keys
-Create a new API key.
+### POST /orgs/:slug/keys
+Create a new API key for the given org.
 
 **Auth required**: JWT
 
@@ -116,10 +181,31 @@ Create a new API key.
 
 ---
 
-### DELETE /keys/:id
+### GET /orgs/:slug/keys
+List API keys for the given org.
+
+**Auth required**: JWT
+
+**Response 200:**
+```json
+[
+  {
+    "id": "key_abc",
+    "name": "my-cli-key",
+    "lastFourChars": "x7z2",
+    "lastUsedAt": "2026-04-20T10:00:00Z",
+    "createdAt": "2026-01-01T00:00:00Z",
+    "revokedAt": null
+  }
+]
+```
+
+---
+
+### DELETE /orgs/:slug/keys/:keyId
 Revoke an API key.
 
-**Auth required**: JWT, must own the key
+**Auth required**: JWT
 
 **Response 204**: no body
 
@@ -127,10 +213,12 @@ Revoke an API key.
 
 ## Assets
 
-### POST /assets
+Assets are scoped to an org. The URL slug is unique within an org. Each asset also has a stable `uuid` used in public viewer URLs.
+
+### POST /orgs/:slug/assets
 Upload a new asset or a new version of an existing asset.
 
-**Auth required**: JWT or API key
+**Auth required**: JWT or API key (WRITE or OWNER role)
 
 **Content-Type**: `multipart/form-data`
 
@@ -138,22 +226,23 @@ Upload a new asset or a new version of an existing asset.
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `file` | file | yes | The asset file |
-| `slug` | string | no | URL slug. Auto-generated if omitted. Must match `[a-z0-9-]+` |
+| `slug` | string | no | URL slug. Auto-generated if omitted. |
 | `description` | string | no | Version description |
 | `visibility` | enum | no | `PUBLIC` (default), `UNLISTED`, `PRIVATE` |
 
 **Behavior:**
-- If `slug` doesn't exist for this user → creates new asset + version 1
-- If `slug` already exists → creates new version (incremented number)
+- If `slug` doesn't exist → creates new asset + version 1
+- If `slug` already exists → creates new version
 
 **Response 201:**
 ```json
 {
   "assetId": "asset_xyz",
   "slug": "q3-review",
+  "uuid": "c58267ac-514f-48bf-886c-ca4295a3cd38",
   "version": 1,
-  "url": "https://filemcp.com/u/dexter/q3-review",
-  "versionUrl": "https://filemcp.com/u/dexter/q3-review/v/1",
+  "url": "https://filemcp.com/u/dexter/c58267ac-514f-48bf-886c-ca4295a3cd38",
+  "versionUrl": "https://filemcp.com/u/dexter/c58267ac-514f-48bf-886c-ca4295a3cd38/v/1",
   "fileType": "HTML",
   "sizeBytes": 42000
 }
@@ -161,15 +250,14 @@ Upload a new asset or a new version of an existing asset.
 
 ---
 
-### GET /assets
-List assets owned by the authenticated user.
+### GET /orgs/:slug/assets
+List assets in the org.
 
-**Auth required**: JWT
+**Auth required**: JWT or API key
 
 **Query params:**
 - `page` (default: 1)
 - `limit` (default: 20, max: 100)
-- `visibility` — filter by visibility
 
 **Response 200:**
 ```json
@@ -177,6 +265,7 @@ List assets owned by the authenticated user.
   "items": [
     {
       "id": "asset_xyz",
+      "uuid": "c58267ac-...",
       "slug": "q3-review",
       "title": "q3-review",
       "visibility": "PUBLIC",
@@ -195,124 +284,78 @@ List assets owned by the authenticated user.
 
 ---
 
-### GET /assets/:id
+### GET /orgs/:slug/assets/:id
 Get asset metadata by ID.
 
-**Auth required**: JWT (for private assets) or none (for public/unlisted)
-
-**Response 200:**
-```json
-{
-  "id": "asset_xyz",
-  "slug": "q3-review",
-  "title": "q3-review",
-  "visibility": "PUBLIC",
-  "owner": { "username": "dexter" },
-  "versions": [
-    { "number": 1, "createdAt": "...", "sizeBytes": 42000 },
-    { "number": 2, "createdAt": "...", "sizeBytes": 43500 }
-  ],
-  "commentCount": 7
-}
-```
+**Auth required**: JWT or API key
 
 ---
 
-### PATCH /assets/:id
+### PATCH /orgs/:slug/assets/:id
 Update asset metadata.
 
-**Auth required**: JWT, must be owner
+**Auth required**: JWT or API key (OWNER role)
 
 **Body (all optional):**
 ```json
-{
-  "title": "Q3 Review Deck",
-  "visibility": "UNLISTED"
-}
+{ "title": "Q3 Review Deck", "visibility": "UNLISTED" }
 ```
-
-**Response 200:** updated asset object
 
 ---
 
-### DELETE /assets/:id
+### DELETE /orgs/:slug/assets/:id
 Delete an asset and all its versions.
 
-**Auth required**: JWT, must be owner
+**Auth required**: JWT or API key (OWNER role)
 
 **Response 204**: no body
 
 ---
 
-## Versions
-
-### GET /assets/:assetId/versions
-List all versions of an asset.
-
-**Response 200:**
-```json
-[
-  {
-    "id": "ver_1",
-    "number": 1,
-    "fileType": "HTML",
-    "sizeBytes": 42000,
-    "description": "initial draft",
-    "thumbnailUrl": "https://...",
-    "createdAt": "2026-04-01T00:00:00Z"
-  }
-]
-```
-
----
-
-### GET /assets/:assetId/versions/:version/content
-Get the raw content URL for a specific version. Returns a presigned S3 URL.
-
-**Response 200:**
-```json
-{
-  "url": "https://r2.filemcp.com/assets/.../original.html?X-Amz-Signature=...",
-  "expiresAt": "2026-04-21T12:00:00Z",
-  "fileType": "HTML"
-}
-```
-
----
-
 ## Public Asset Resolution
 
-These routes power the viewer pages.
+These routes power the viewer pages. The asset is identified by `org slug` + `uuid` (not username + slug) to keep URLs stable if a slug is renamed.
 
-### GET /public/:username/:slug
-Resolve the latest version of an asset by username + slug.
+### GET /public/:org/:uuid
+Resolve the latest version of an asset.
 
-**Auth optional** (enriches response if authed — e.g. "is this yours?")
+**Auth optional**
 
 **Response 200:**
 ```json
 {
   "assetId": "asset_xyz",
   "slug": "q3-review",
+  "uuid": "c58267ac-...",
   "title": "Q3 Review Deck",
-  "owner": { "username": "dexter" },
+  "owner": { "org": "dexter" },
   "latestVersion": 3,
   "currentVersion": {
     "number": 3,
     "fileType": "HTML",
-    "contentUrl": "https://...",
     "thumbnailUrl": "https://..."
   },
   "commentCount": 7,
-  "visibility": "PUBLIC",
-  "isOwner": false
+  "visibility": "PUBLIC"
 }
 ```
 
 ---
 
-### GET /public/:username/:slug/v/:version
+### GET /public/:org/:uuid/v/:version
 Same as above but for a specific version number.
+
+---
+
+### GET /public/:org/:uuid/content
+Stream the raw asset content (latest version).
+
+**Response**: raw file bytes with appropriate `Content-Type`
+
+---
+
+### GET /public/:org/:uuid/v/:version/content
+Stream raw content for a specific version.
 
 ---
 
@@ -354,9 +397,7 @@ Get all comments for an asset.
 ---
 
 ### POST /assets/:assetId/comments
-Post a new comment.
-
-**Auth**: JWT if logged in, or anonymous (no auth header). Anonymous commenters must supply `anonName`.
+Post a new comment. Anonymous commenters must supply `anonName`.
 
 **Body:**
 ```json
@@ -366,15 +407,15 @@ Post a new comment.
   "xPct": 0.32,
   "yPct": 0.55,
   "selectorHint": "body > section:nth-child(3) > h2",
-  "anonName": "Alice",        // required if not authenticated
-  "anonEmail": "a@example.com" // optional; pre-fills signup form
+  "anonName": "Alice",
+  "anonEmail": "a@example.com"
 }
 ```
 
-Or for line-range anchoring:
+Line-range anchor:
 ```json
 {
-  "body": "Should we add a summary here?",
+  "body": "Should we add a summary?",
   "anchorType": "LINE_RANGE",
   "lineStart": 14,
   "lineEnd": 18,
@@ -382,90 +423,59 @@ Or for line-range anchoring:
 }
 ```
 
-Or a reply:
+Reply:
 ```json
-{
-  "body": "Good point",
-  "parentId": "cmt_1",
-  "anonName": "Alice"
-}
+{ "body": "Good point", "parentId": "cmt_1", "anonName": "Alice" }
 ```
-When `parentId` is set, anchor fields are ignored (reply inherits parent anchor).
-
-**Post-comment response includes a `nudge` field for anonymous commenters:**
-```json
-{
-  "comment": { ...comment object... },
-  "nudge": {
-    "message": "Save your comments and get notified on replies.",
-    "signupUrl": "/register?prefill_email=a%40example.com"
-  }
-}
-```
-`nudge` is omitted if the commenter is authenticated.
 
 **Response 201:** the created comment object
 
 ---
 
 ### PATCH /comments/:id
-Edit a comment body or resolve/unresolve it.
+Edit body or resolve/unresolve.
 
 **Auth required**: JWT
-- Body edit: must be comment author
-- Resolve/unresolve: must be comment author or asset owner
 
 **Body (all optional):**
 ```json
-{
-  "body": "Updated text",
-  "resolved": true
-}
+{ "body": "Updated text", "resolved": true }
 ```
-
-**Response 200:** updated comment object
 
 ---
 
 ### DELETE /comments/:id
-Delete a comment.
-
-**Auth required**: JWT, must be comment author or asset owner
+**Auth required**: JWT (comment author or asset org OWNER)
 
 **Response 204**: no body
 
 ---
 
-## Users
+## MCP Server
 
-### GET /users/:username
-Public profile.
+The MCP server is mounted at `POST /mcp` (JSON-RPC 2.0). Auth via API key only.
 
-**Response 200:**
+### Tools
+
+**`upload_asset`** — Returns a `curl` command to run. The command uploads the file and returns `{ url, versionUrl }`.
+
+Input:
 ```json
-{
-  "username": "dexter",
-  "assetCount": 12,
-  "joinedAt": "2026-01-01T00:00:00Z"
-}
+{ "filepath": "/path/to/file.html", "filename": "deck.html" }
 ```
 
----
+**`list_assets`** — Lists uploaded assets for the authenticated org.
 
-### GET /users/me
-Authenticated user's own profile.
-
-**Auth required**: JWT
-
-**Response 200:**
+Input:
 ```json
-{
-  "id": "usr_abc",
-  "username": "dexter",
-  "email": "dexter@example.com",
-  "assetCount": 12,
-  "createdAt": "2026-01-01T00:00:00Z"
-}
+{ "page": 1, "limit": 20 }
+```
+
+**`get_asset`** — Returns the raw content of an asset.
+
+Input:
+```json
+{ "slug": "my-deck", "version": 2 }
 ```
 
 ---
@@ -474,11 +484,11 @@ Authenticated user's own profile.
 
 | Status | When |
 |--------|------|
-| 400 | Validation failure, bad file type, slug taken |
+| 400 | Validation failure, bad file type |
 | 401 | Missing or invalid auth token/key |
-| 403 | Authenticated but not authorized (not owner) |
-| 404 | Asset not found or private asset (to prevent enumeration) |
-| 409 | Username or email already taken |
-| 413 | File too large (> 10MB) |
-| 429 | Rate limit exceeded |
+| 403 | Authenticated but not authorized |
+| 404 | Asset not found or private (to prevent enumeration) |
+| 409 | Username, email, or org slug already taken |
+| 413 | File too large |
 | 422 | Unsupported file type |
+| 429 | Rate limit exceeded |

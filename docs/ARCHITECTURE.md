@@ -5,7 +5,7 @@
 ```
 ┌─────────────────────────────────────────────────────────┐
 │  Clients                                                  │
-│  curl / API key  │  Nuxt Web App  │  MCP Server (v1.5)   │
+│  curl / API key  │  Nuxt Web App  │  MCP Server          │
 └────────┬─────────────────┬──────────────────┬────────────┘
          │                 │                  │
          ▼                 ▼                  ▼
@@ -13,7 +13,8 @@
 │  NestJS API  (Fastify adapter)                           │
 │                                                          │
 │  Modules:                                                │
-│  auth │ users │ assets │ versions │ comments │ storage   │
+│  auth │ users │ orgs │ assets │ versions │ comments      │
+│  storage │ render │ thumbnail │ mcp                      │
 └──────────────────────────┬──────────────────────────────┘
                            │
           ┌────────────────┼────────────────┐
@@ -24,8 +25,9 @@
    └─────────────┘  └──────────────┘  └────┬─────┘
                                            │
                                     ┌──────▼──────┐
-                                    │  Workers    │
-                                    │ md→html     │
+                                    │  Worker     │
+                                    │ (separate   │
+                                    │  app)       │
                                     │ thumbnail   │
                                     └─────────────┘
 ```
@@ -40,53 +42,65 @@
 apps/api/src/
 ├── main.ts
 ├── app.module.ts
-├── modules/
-│   ├── auth/
-│   │   ├── auth.module.ts
-│   │   ├── auth.service.ts
-│   │   ├── auth.controller.ts
-│   │   ├── strategies/
-│   │   │   ├── jwt.strategy.ts
-│   │   │   └── api-key.strategy.ts
-│   │   └── guards/
-│   │       ├── jwt-auth.guard.ts
-│   │       ├── api-key.guard.ts
-│   │       └── optional-auth.guard.ts  # for public routes that enrich with user context if present
-│   ├── users/
-│   │   ├── users.module.ts
-│   │   ├── users.service.ts
-│   │   └── users.controller.ts
-│   ├── assets/
-│   │   ├── assets.module.ts
-│   │   ├── assets.service.ts
-│   │   ├── assets.controller.ts
-│   │   └── dto/
-│   │       ├── create-asset.dto.ts
-│   │       └── asset-response.dto.ts
-│   ├── versions/
-│   │   ├── versions.module.ts
-│   │   ├── versions.service.ts
-│   │   └── versions.controller.ts
-│   ├── comments/
-│   │   ├── comments.module.ts
-│   │   ├── comments.service.ts
-│   │   ├── comments.controller.ts
-│   │   └── dto/
-│   │       ├── create-comment.dto.ts
-│   │       └── comment-response.dto.ts
-│   └── storage/
-│       ├── storage.module.ts
-│       └── storage.service.ts          # wraps S3 SDK
-├── workers/
-│   ├── render.worker.ts                # markdown → HTML conversion
-│   └── thumbnail.worker.ts            # generate preview screenshot
+├── utils/
+│   └── slug.ts
 ├── prisma/
 │   ├── prisma.module.ts
-│   ├── prisma.service.ts
-│   └── schema.prisma
-└── config/
-    ├── config.module.ts
-    └── config.service.ts
+│   └── prisma.service.ts
+└── modules/
+    ├── auth/
+    │   ├── auth.module.ts
+    │   ├── auth.service.ts
+    │   ├── auth.controller.ts
+    │   ├── strategies/
+    │   │   ├── jwt.strategy.ts
+    │   │   └── api-key.strategy.ts
+    │   ├── guards/
+    │   │   ├── jwt-auth.guard.ts
+    │   │   ├── api-key.guard.ts
+    │   │   └── optional-auth.guard.ts
+    │   └── decorators/
+    │       └── require-org-role.decorator.ts
+    ├── users/
+    │   ├── users.module.ts
+    │   ├── users.service.ts
+    │   └── users.controller.ts
+    ├── orgs/
+    │   ├── orgs.module.ts
+    │   ├── orgs.service.ts
+    │   └── orgs.controller.ts
+    ├── assets/
+    │   ├── assets.module.ts
+    │   ├── assets.service.ts
+    │   ├── assets.controller.ts     # /orgs/:slug/assets
+    │   ├── public.controller.ts     # /public/:org/:uuid
+    │   └── dto/
+    ├── comments/
+    │   ├── comments.module.ts
+    │   ├── comments.service.ts
+    │   └── comments.controller.ts
+    ├── storage/
+    │   ├── storage.module.ts
+    │   └── storage.service.ts
+    ├── render/
+    │   ├── render.module.ts
+    │   └── render.service.ts        # markdown → HTML via unified
+    ├── thumbnail/
+    │   ├── thumbnail.module.ts
+    │   └── thumbnail.service.ts     # enqueues BullMQ jobs
+    └── mcp/
+        ├── mcp.module.ts
+        ├── mcp.controller.ts
+        └── mcp.service.ts
+```
+
+### Worker App
+
+Thumbnail generation runs as a separate process in `apps/worker/` — a standalone Node app (not part of NestJS) that consumes the `screenshots` BullMQ queue using Playwright headless to screenshot assets and upload thumbnails to S3.
+
+```
+apps/worker/src/
+└── index.ts    # BullMQ worker, Playwright, S3 upload
 ```
 
 ---
@@ -94,112 +108,122 @@ apps/api/src/
 ## Database Schema (Prisma)
 
 ```prisma
-model User {
-  id           String    @id @default(cuid())
-  email        String    @unique
-  username     String    @unique
-  passwordHash String
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+model Organization {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
 
-  assets       Asset[]
-  apiKeys      ApiKey[]
-  comments     Comment[]
+  members OrgMember[]
+  assets  Asset[]
+}
+
+model OrgMember {
+  id        String   @id @default(cuid())
+  role      OrgRole
+  createdAt DateTime @default(now())
+
+  orgId   String
+  org     Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  userId  String
+  user    User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  apiKeys ApiKey[]
+
+  @@unique([orgId, userId])
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  username     String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  memberships OrgMember[]
+  comments    Comment[]
 }
 
 model ApiKey {
-  id          String    @id @default(cuid())
-  name        String
-  keyHash     String    @unique   // bcrypt hash of the actual key
-  lastFourChars String            // for display only
-  lastUsedAt  DateTime?
-  createdAt   DateTime  @default(now())
-  revokedAt   DateTime?
+  id            String    @id @default(cuid())
+  name          String
+  keyHash       String    @unique
+  keyPrefix     String
+  lastFourChars String
+  lastUsedAt    DateTime?
+  createdAt     DateTime  @default(now())
+  revokedAt     DateTime?
 
-  userId      String
-  user        User      @relation(fields: [userId], references: [id])
+  memberId String
+  member   OrgMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@index([keyPrefix])
 }
 
 model Asset {
-  id           String     @id @default(cuid())
-  slug         String
-  title        String?    // defaults to filename
-  visibility   Visibility @default(PUBLIC)
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
+  id         String     @id @default(cuid())
+  uuid       String     @unique @default(uuid())
+  slug       String
+  title      String?
+  visibility Visibility @default(PUBLIC)
+  viewCount  Int        @default(0)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
 
-  ownerId      String
-  owner        User       @relation(fields: [ownerId], references: [id])
-  versions     Version[]
-  comments     Comment[]
+  orgId    String
+  org      Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  versions Version[]
+  comments Comment[]
 
-  @@unique([ownerId, slug])
+  @@unique([orgId, slug])
 }
 
 model Version {
-  id           String   @id @default(cuid())
-  number       Int                           // 1-indexed, monotonically increasing per asset
-  fileType     FileType
-  storagePath  String                        // S3 key
-  sizeBytes    Int
-  description  String?
-  renderedPath String?                       // S3 key for server-rendered HTML (md assets)
+  id            String   @id @default(cuid())
+  number        Int
+  fileType      FileType
+  storagePath   String
+  sizeBytes     Int
+  description   String?
+  renderedPath  String?
   thumbnailPath String?
-  createdAt    DateTime @default(now())
+  createdAt     DateTime @default(now())
 
-  assetId      String
-  asset        Asset    @relation(fields: [assetId], references: [id])
+  assetId String
+  asset   Asset  @relation(fields: [assetId], references: [id], onDelete: Cascade)
 
   @@unique([assetId, number])
 }
 
 model Comment {
-  id           String        @id @default(cuid())
+  id           String     @id @default(cuid())
   body         String
   anchorType   AnchorType
-  // HTML anchor
-  xPct         Float?        // 0-1, percentage of rendered width
-  yPct         Float?        // 0-1, percentage of rendered height
-  selectorHint String?       // best-effort DOM path
-  // Text/MD anchor
+  xPct         Float?
+  yPct         Float?
+  selectorHint String?
   lineStart    Int?
   lineEnd      Int?
-  resolved     Boolean       @default(false)
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  resolved     Boolean    @default(false)
+  anonName     String?
+  anonEmail    String?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
 
-  assetId      String
-  asset        Asset         @relation(fields: [assetId], references: [id])
-  authorId     String?       // null = anonymous comment
-  author       User?         @relation(fields: [authorId], references: [id])
-  anonName     String?       // display name for anonymous commenters (required when authorId null)
-  anonEmail    String?       // optional; pre-fills signup form if provided
-  parentId     String?       // null = top-level
-  parent       Comment?      @relation("replies", fields: [parentId], references: [id])
-  replies      Comment[]     @relation("replies")
+  assetId  String
+  asset    Asset    @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  authorId String?
+  author   User?    @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  parentId String?
+  parent   Comment? @relation("replies", fields: [parentId], references: [id])
+  replies  Comment[] @relation("replies")
 }
 
-enum Visibility {
-  PUBLIC
-  UNLISTED
-  PRIVATE
-}
-
-enum FileType {
-  HTML
-  MARKDOWN
-  JSON
-  TEXT
-  CSS
-  JS
-  TS
-  SVG
-}
-
-enum AnchorType {
-  POSITION   // x/y for HTML
-  LINE_RANGE // line numbers for text/MD
-}
+enum OrgRole   { OWNER WRITE READ }
+enum Visibility { PUBLIC UNLISTED PRIVATE }
+enum FileType  { HTML MARKDOWN JSON TEXT CSS JS TS SVG }
+enum AnchorType { POSITION LINE_RANGE }
 ```
 
 ---
@@ -209,47 +233,30 @@ enum AnchorType {
 ```
 apps/web/
 ├── pages/
-│   ├── index.vue                 # landing page
+│   ├── index.vue
 │   ├── login.vue
 │   ├── register.vue
 │   ├── dashboard/
-│   │   ├── index.vue             # /dashboard — my assets
-│   │   ├── shared.vue            # /dashboard/shared
-│   │   └── keys.vue              # /dashboard/keys
+│   │   ├── index.vue        # /dashboard — my assets
+│   │   ├── members.vue      # /dashboard/members
+│   │   └── keys.vue         # /dashboard/keys
 │   └── u/
 │       └── [username]/
 │           └── [slug]/
-│               ├── index.vue     # /u/:username/:slug — latest version
+│               ├── index.vue
 │               └── v/
-│                   └── [version].vue  # /u/:username/:slug/v/:version
+│                   └── [version].vue
 ├── components/
-│   ├── asset/
-│   │   ├── AssetViewer.vue       # orchestrates render + comment overlay
-│   │   ├── HtmlRenderer.vue      # sandboxed iframe
-│   │   ├── MarkdownRenderer.vue
-│   │   ├── JsonRenderer.vue
-│   │   └── CodeRenderer.vue
-│   ├── comment/
-│   │   ├── CommentPin.vue        # numbered pin overlay
-│   │   ├── CommentPanel.vue      # side panel
-│   │   ├── CommentThread.vue
-│   │   └── CommentCompose.vue
-│   ├── dashboard/
-│   │   ├── AssetGrid.vue
-│   │   ├── AssetCard.vue
-│   │   └── VersionBadge.vue
-│   └── ui/                       # shadcn-vue components
+│   ├── DashboardNav.vue
+│   └── ...
 ├── composables/
-│   ├── useApi.ts                 # typed $fetch wrapper
-│   ├── useAuth.ts
-│   ├── useAsset.ts
-│   └── useComments.ts
+│   ├── useApi.ts            # typed $fetch wrapper + $api helper
+│   └── ...
 ├── stores/
-│   ├── auth.store.ts
-│   └── comment.store.ts
+│   └── auth.store.ts
 └── middleware/
-    ├── auth.ts                   # redirect to /login if no session
-    └── guest.ts                  # redirect to /dashboard if already authed
+    ├── auth.ts
+    └── guest.ts
 ```
 
 ### Rendering Strategy
@@ -257,25 +264,37 @@ apps/web/
 | Route | Strategy | Reason |
 |-------|----------|--------|
 | `/u/:username/:slug` | SSR | OG meta tags, SEO, fast first paint for shared links |
-| `/dashboard/*` | SPA (CSR) | Auth-gated, no SEO needed, snappy navigation |
-| `/` (landing) | SSG | Static, no dynamic data |
+| `/dashboard/*` | SPA (CSR) | Auth-gated, no SEO needed |
+| `/` (landing) | SSG | Static |
+
+### API Proxy
+
+Nuxt uses `routeRules` to proxy `/api/**` → `http://api:4000/api/**` (internal Docker network) for SSR. Client-side requests go directly to `https://api.filemcp.com/api`.
 
 ---
 
 ## Auth Flow
 
 ### Web (JWT)
-1. POST `/api/auth/login` → returns `{ accessToken, refreshToken }`
-2. Access token stored in memory (Pinia), refresh token in httpOnly cookie
-3. Access token expires in 15min, refresh in 7 days
-4. Nuxt middleware calls `/api/auth/refresh` on load if access token absent
+1. POST `/api/auth/login` → returns `{ accessToken, user }`
+2. Access token stored in a cookie (`access_token`)
+3. Token sent as `Authorization: Bearer <token>` on all API requests
 
 ### CLI / curl (API Key)
-1. User creates a named API key in dashboard
-2. Key is shown once — format: `filemcp_<32 random chars>`
-3. Sent as `Authorization: Bearer <key>` header
-4. Backend identifies `filemcp_` prefix and routes to `ApiKeyGuard` instead of `JwtGuard`
-5. Key is hashed (bcrypt) before storage; plaintext never stored
+1. User creates a named API key in dashboard (scoped to an org)
+2. Key format: `filemcp_<32 random chars>`
+3. Sent as `Authorization: Bearer <key>`
+4. Backend identifies `filemcp_` prefix and routes to `ApiKeyGuard`
+5. Key is bcrypt-hashed before storage; plaintext never stored
+6. API key auth sets `orgId`, `orgSlug`, and `role` on the request user object
+
+---
+
+## Organizations
+
+Every resource (asset, API key) is scoped to an **Organization**. A user can be a member of multiple orgs with a role of `OWNER`, `WRITE`, or `READ`.
+
+On registration, a personal org is automatically created (slug = username). The user is the `OWNER` of that org.
 
 ---
 
@@ -283,66 +302,64 @@ apps/web/
 
 ### File Storage (S3-compatible)
 - Local dev: MinIO via Docker
-- Production: AWS S3 or Cloudflare R2 (R2 preferred — no egress fees)
+- Production: AWS S3 (eu-central-1)
 - Bucket structure:
   ```
-  assets/
-    {userId}/
-      {assetId}/
-        v{version}/
-          original.{ext}         # raw uploaded file
-          rendered.html          # only for .md files, server-side render output
-          thumbnail.webp         # auto-generated preview
+  {orgId}/{assetId}/v{version}/original.{ext}
+  {orgId}/{assetId}/v{version}/rendered.html   # .md files only
+  {orgId}/{assetId}/v{version}/thumbnail.jpg
   ```
-- Presigned URLs for direct asset delivery (no proxying through API server)
-- Thumbnail generation queued via BullMQ after upload
+- Files served via public S3 URL (`S3_PUBLIC_URL`)
+- `S3_ENDPOINT` omitted in production (uses default AWS endpoint); set for MinIO in dev
 
 ### Database
-- PostgreSQL via managed service (Supabase or Railway for dev, RDS for prod)
-- Prisma migrations versioned in repo
+- PostgreSQL running in Docker on the same EC2 instance
+- Port 5432 bound to `127.0.0.1` — accessible only via SSH tunnel
 
 ---
 
 ## Job Queue (BullMQ)
 
-### `render` queue
-- Triggered: when a `.md` file is uploaded
-- Job: render Markdown → HTML using `unified` + `remark` + `rehype` pipeline
-- Output: store rendered HTML to S3 at `rendered.html`, update `Version.renderedPath`
-
-### `thumbnail` queue
+### `screenshots` queue
 - Triggered: after every upload
-- Job: use Playwright headless to screenshot the rendered asset
-- Output: store as `thumbnail.webp`, update `Version.thumbnailPath`
-- Fallback: if Playwright job fails, use a text-based placeholder thumbnail
+- Worker: `apps/worker` — Playwright headless screenshots the rendered asset
+- Output: JPEG stored to S3, `Version.thumbnailPath` updated
+- Markdown files: screenshot uses the pre-rendered HTML (`renderedPath`), not the raw source
 
 ---
 
-## Security Considerations
+## Security
 
-- HTML assets rendered in a **sandboxed iframe** with `sandbox="allow-scripts"` — no `allow-same-origin` to prevent XSS escaping the frame
-- API keys hashed with bcrypt before storage
-- File uploads: MIME type validated server-side (not just extension), content scanned for script injection in non-HTML types
-- Rate limiting on upload endpoints (100/day per API key, 10/minute burst)
-- Public asset routes: no auth leak — visibility check returns 404 (not 403) for private assets to prevent enumeration
-- CORS: `api.filemcp.com` only accepts origins from `filemcp.com` for credentialed requests
+- HTML assets rendered in a sandboxed iframe: `sandbox="allow-scripts"` — no `allow-same-origin`
+- API keys bcrypt-hashed before storage; only `keyPrefix` (first 16 chars) indexed for lookup
+- CORS: `api.filemcp.com` only accepts requests from `filemcp.com`
+- Private assets return 404 (not 403) to prevent enumeration
 
 ---
 
-## Infrastructure (target production)
+## Infrastructure
 
 ```
-cloudflare (DNS + WAF)
+cloudflare (DNS)
      │
      ▼
-Nuxt 3 app  ──── deployed on Vercel or Cloudflare Pages
+EC2 instance (63.182.47.171)
      │
      ▼
-NestJS API  ──── deployed on Railway or Fly.io (containerized)
+nginx (Docker, ports 80/443)
+  ├── filemcp.com → web:3000
+  ├── api.filemcp.com → api:4000
+  ├── staging.filemcp.com → web:3000
+  └── api.staging.filemcp.com → api:4000
      │
-     ├──── PostgreSQL (Supabase or Railway)
-     ├──── Redis (BullMQ) — Upstash Redis
-     └──── Cloudflare R2 (file storage)
+     ├── web (Nuxt 3, port 3000)
+     ├── api (NestJS, port 4000)
+     ├── worker (Playwright thumbnail worker)
+     ├── postgres (port 5432, 127.0.0.1 only)
+     ├── redis (BullMQ)
+     └── certbot (Let's Encrypt renewal)
 ```
 
-Local dev uses Docker Compose for PostgreSQL, Redis, and MinIO.
+Staging and production run on the same EC2 instance using separate Docker Compose stacks deployed to `/srv/docker/`.
+
+Deployment: GitHub Actions (`workflow_dispatch`) → `build.sh` (Docker build + ECR push) → `release.sh` (SSH deploy).
