@@ -2,6 +2,7 @@
 import type { Comment } from '@cdnmcp/types'
 
 const props = defineProps<{
+  viewMode?: boolean
   asset: {
     assetId: string
     slug: string
@@ -22,8 +23,8 @@ const props = defineProps<{
 
 const route = useRoute()
 const commentStore = useCommentStore()
-const panelOpen = ref(true)
-commentStore.commentMode = true
+const panelOpen = ref(!props.viewMode)
+commentStore.commentMode = !props.viewMode
 
 function toggleComments() {
   if (panelOpen.value && commentStore.commentMode) {
@@ -44,6 +45,16 @@ watch(commentsData, (val) => commentStore.setComments(val ?? []))
 function handleViewerClick(event: { xPct: number; yPct: number; selectorHint: string }) {
   if (!commentStore.commentMode) return
   commentStore.setPendingAnchor(event)
+}
+
+const htmlRendererRef = ref<{ print: () => void } | null>(null)
+
+function printAsset() {
+  if (props.asset.currentVersion.fileType === 'HTML') {
+    htmlRendererRef.value?.print()
+  } else {
+    window.print()
+  }
 }
 </script>
 
@@ -67,8 +78,22 @@ function handleViewerClick(event: { xPct: number; yPct: number; selectorHint: st
           <option v-for="v in asset.latestVersion" :key="v" :value="v">v{{ v }}</option>
         </select>
 
-        <!-- Comments toggle -->
+        <!-- Print button -->
         <button
+          class="p-2 rounded bg-zinc-800 text-zinc-300 hover:bg-zinc-700 transition"
+          title="Print"
+          @click="printAsset"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 6 2 18 2 18 9"/>
+            <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+            <rect x="6" y="14" width="12" height="8"/>
+          </svg>
+        </button>
+
+        <!-- Comments toggle (hidden in view mode) -->
+        <button
+          v-if="!viewMode"
           :class="[
             'relative p-2 rounded transition',
             panelOpen
@@ -98,6 +123,7 @@ function handleViewerClick(event: { xPct: number; yPct: number; selectorHint: st
       <div class="flex-1 relative overflow-hidden">
         <AssetHtmlRenderer
           v-if="asset.currentVersion.fileType === 'HTML'"
+          ref="htmlRendererRef"
           :content-url="asset.currentVersion.contentUrl"
           :comment-mode="commentStore.commentMode"
           :comments="commentStore.comments"
@@ -122,7 +148,7 @@ function handleViewerClick(event: { xPct: number; yPct: number; selectorHint: st
 
         <!-- Comment compose popup -->
         <CommentCompose
-          v-if="commentStore.pendingAnchor"
+          v-if="!viewMode && commentStore.pendingAnchor"
           :anchor="commentStore.pendingAnchor"
           :asset-id="asset.assetId"
           @submitted="() => { commentStore.setPendingAnchor(null); refreshComments() }"
@@ -132,7 +158,7 @@ function handleViewerClick(event: { xPct: number; yPct: number; selectorHint: st
 
       <!-- Comment panel -->
       <CommentPanel
-        v-if="panelOpen"
+        v-if="!viewMode && panelOpen"
         :comments="commentStore.comments"
         :asset-id="asset.assetId"
         :is-owner="asset.isOwner"

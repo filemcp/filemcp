@@ -2,6 +2,7 @@
 const route = useRoute()
 const username = route.params.username as string
 const slug = route.params.slug as string
+const viewMode = route.query.mode === 'view'
 
 const { data, error } = await useApi<any>(`/public/${username}/${slug}`)
 
@@ -18,5 +19,5 @@ useSeoMeta({
 </script>
 
 <template>
-  <AssetViewer v-if="data" :asset="data" />
+  <AssetViewer v-if="data" :asset="data" :view-mode="viewMode" />
 </template>

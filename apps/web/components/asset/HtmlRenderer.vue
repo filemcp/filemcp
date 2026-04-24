@@ -14,6 +14,12 @@ const emit = defineEmits<{
 const containerRef = ref<HTMLDivElement>()
 const iframeRef = ref<HTMLIFrameElement>()
 
+function print() {
+  iframeRef.value?.contentWindow?.print()
+}
+
+defineExpose({ print })
+
 function handleOverlayClick(e: MouseEvent) {
   if (!props.commentMode || !containerRef.value) return
   const rect = containerRef.value.getBoundingClientRect()

@@ -11,9 +11,9 @@ const mcpUrl = computed(() => {
   return `${base}/api/mcp`
 })
 
-const tabs = ['json', 'codex', 'claude'] as const
+const tabs = ['claude', 'codex', 'json'] as const
 type Tab = (typeof tabs)[number]
-const activeTab = ref<Tab>('json')
+const activeTab = ref<Tab>('claude')
 const copied = ref(false)
 
 const jsonConfig = computed(() =>
@@ -59,7 +59,7 @@ async function copy() {
 
 <template>
   <div class="bg-zinc-900 rounded-xl overflow-hidden">
-    <div class="flex items-center justify-between border-b border-zinc-800 px-4">
+    <div class="flex items-center justify-between border-b border-zinc-800 px-3">
       <div class="flex">
         <button
           v-for="tab in tabs"
@@ -82,6 +82,6 @@ async function copy() {
         {{ copied ? 'Copied!' : 'Copy' }}
       </button>
     </div>
-    <pre class="p-4 text-xs font-mono text-zinc-300 overflow-x-auto whitespace-pre-wrap break-all leading-relaxed">{{ activeContent }}</pre>
+    <pre class="px-4 py-3 text-xs font-mono text-zinc-300 overflow-x-auto whitespace-pre-wrap break-all leading-relaxed text-left">{{ activeContent }}</pre>
   </div>
 </template>
