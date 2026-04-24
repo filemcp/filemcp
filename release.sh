@@ -13,7 +13,7 @@ AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-$(aws configure get aws_access_key_id 2>/
 AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-$(aws configure get aws_secret_access_key 2>/dev/null || echo "")}
 AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN:-$(aws configure get aws_session_token 2>/dev/null || echo "")}
 ECR_REPOSITORY_PREFIX="filemcp"
-SERVICES=("api" "web" "worker")
+SERVICES=("api" "web" "worker" "nginx" "certbot")
 
 SERVICE=""
 ENV_FILE=""
