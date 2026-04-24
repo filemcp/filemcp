@@ -6,7 +6,10 @@
     "dev": "nuxt dev --port 3000",
     "build": "nuxt build",
     "preview": "nuxt preview",
-    "typecheck": "nuxt typecheck"
+    "typecheck": "nuxt typecheck",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui"
   },
   "dependencies": {
     "@filemcp/types": "workspace:*",
@@ -20,6 +23,10 @@
   "devDependencies": {
     "@nuxt/devtools": "^2.0.0",
     "@tailwindcss/typography": "^0.5.19",
-    "typescript": "^5.7.0"
+    "@vitejs/plugin-vue": "^5.0.0",
+    "@vue/test-utils": "^2.4.0",
+    "happy-dom": "^15.0.0",
+    "typescript": "^5.7.0",
+    "vitest": "^2.0.0"
   }
 }
