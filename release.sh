@@ -101,6 +101,10 @@ echo "Copying nginx config to $TARGET_HOST..."
 remote_exec "mkdir -p /srv/docker/nginx"
 remote_exec "cat > /srv/docker/nginx/default.conf" < "${SCRIPT_DIR}/nginx/${ENVIRONMENT}.conf"
 
+echo "Copying certbot-init script to $TARGET_HOST..."
+remote_exec "cat > /srv/docker/certbot-init.sh" < "${SCRIPT_DIR}/certbot-init.sh"
+remote_exec "chmod +x /srv/docker/certbot-init.sh"
+
 # ECR login on the remote server
 echo "Logging in to ECR on $TARGET_HOST..."
 ECR_REGISTRY="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
