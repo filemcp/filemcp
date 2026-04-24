@@ -97,6 +97,10 @@ envsubst '$AWS_ACCOUNT_ID $AWS_REGION' < "$local_compose" > "$processed_compose"
 echo "Copying compose file to $TARGET_HOST..."
 remote_exec "cat > /srv/docker/docker-compose.yml" < "$processed_compose"
 
+echo "Copying nginx config to $TARGET_HOST..."
+remote_exec "mkdir -p /srv/docker/nginx"
+remote_exec "cat > /srv/docker/nginx/default.conf" < "${SCRIPT_DIR}/nginx/${ENVIRONMENT}.conf"
+
 # ECR login on the remote server
 echo "Logging in to ECR on $TARGET_HOST..."
 ECR_REGISTRY="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
