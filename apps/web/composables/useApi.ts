@@ -26,12 +26,13 @@ export async function $api<T>(path: string, options?: RequestInit & { query?: Re
   const tokenCookie = useCookie<string | null>('access_token')
 
   const { query, ...fetchOptions } = options ?? {}
-  const url = new URL(`${config.public.apiUrl}${path}`)
+  let fullPath = `${config.public.apiUrl}${path}`
   if (query) {
-    Object.entries(query).forEach(([k, v]) => url.searchParams.set(k, v))
+    const params = new URLSearchParams(query)
+    fullPath += `?${params}`
   }
 
-  return $fetch<T>(url.toString(), {
+  return $fetch<T>(fullPath, {
     ...fetchOptions,
     headers: {
       ...(fetchOptions?.headers as Record<string, string> | undefined),
