@@ -18,6 +18,10 @@ services:
   api:
     image: ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/filemcp-api:production-latest
     env_file: .env
+    environment:
+      API_URL: https://api.filemcp.com
+      APP_URL: https://filemcp.com
+      ALLOWED_ORIGINS: https://filemcp.com
     depends_on:
       - postgres
       - redis
@@ -32,6 +36,10 @@ services:
   web:
     image: ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/filemcp-web:production-latest
     env_file: .env
+    environment:
+      NUXT_API_URL: http://api:4000/api
+      NUXT_PUBLIC_API_URL: https://api.filemcp.com/api
+      NUXT_PUBLIC_APP_URL: https://filemcp.com
     depends_on:
       api:
         condition: service_healthy
@@ -71,6 +79,8 @@ services:
   worker:
     image: ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/filemcp-worker:production-latest
     env_file: .env
+    environment:
+      API_URL: https://api.filemcp.com
     depends_on:
       - redis
       - postgres

@@ -58,11 +58,6 @@ jobs:
           S3_ACCESS_KEY=${{ secrets.AWS_ACCESS_KEY_ID }}
           S3_SECRET_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
           REDIS_URL=${{ secrets.REDIS_URL }}
-          NUXT_API_URL=http://api:4000/api
-          API_URL=https://${{ github.event.inputs.environment == 'production' && 'api.filemcp.com' || 'api.staging.filemcp.com' }}
-          NUXT_PUBLIC_API_URL=https://${{ github.event.inputs.environment == 'production' && 'api.filemcp.com' || 'api.staging.filemcp.com' }}/api
-          NUXT_PUBLIC_APP_URL=https://${{ github.event.inputs.environment == 'production' && 'filemcp.com' || 'staging.filemcp.com' }}
-          ALLOWED_ORIGINS=https://${{ github.event.inputs.environment == 'production' && 'filemcp.com' || 'staging.filemcp.com' }}
           EOF
           # strip leading whitespace introduced by heredoc indentation
           sed -i 's/^ *//' /tmp/deploy.env

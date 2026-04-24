@@ -15,17 +15,18 @@ const connection = {
   port: parseInt(redisUrl.port || '6379'),
 }
 
-const s3Endpoint = process.env.S3_ENDPOINT ?? 'http://minio:9000'
+const s3Endpoint = process.env.S3_ENDPOINT || undefined
 const s3Bucket = process.env.S3_BUCKET ?? 'filemcp-assets'
+const s3PublicUrl = process.env.S3_PUBLIC_URL ?? ''
 
 const s3 = new S3Client({
-  endpoint: s3Endpoint,
+  ...(s3Endpoint ? { endpoint: s3Endpoint } : {}),
   region: process.env.S3_REGION ?? 'us-east-1',
   credentials: {
     accessKeyId: process.env.S3_ACCESS_KEY ?? 'filemcp',
     secretAccessKey: process.env.S3_SECRET_KEY ?? 'filemcp_secret',
   },
-  forcePathStyle: true,
+  forcePathStyle: !!s3Endpoint,
 })
 
 const prisma = new PrismaClient()
@@ -34,7 +35,7 @@ const worker = new Worker<ScreenshotJob>(
   'screenshots',
   async (job: Job<ScreenshotJob>) => {
     const { versionId, contentKey, thumbnailKey } = job.data
-    const contentUrl = `${s3Endpoint}/${s3Bucket}/${contentKey}`
+    const contentUrl = `${s3PublicUrl}/${contentKey}`
 
     console.log(`[screenshot] versionId=${versionId} url=${contentUrl}`)
 
