@@ -9,5 +9,5 @@ COPY apps/worker/package.json ./apps/worker/
 COPY apps/api/prisma ./apps/api/prisma
 RUN pnpm install --frozen-lockfile
 COPY apps/worker/ ./apps/worker/
-RUN pnpm exec prisma generate --schema=apps/api/prisma/schema.prisma
+RUN cd apps/worker && pnpm exec prisma generate --schema=../api/prisma/schema.prisma
 CMD ["sh", "-c", "cd apps/worker && pnpm run start"]
