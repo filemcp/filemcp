@@ -31,7 +31,7 @@ async function submit() {
     <div class="w-full max-w-sm space-y-6">
       <div class="text-center">
         <NuxtLink to="/" class="inline-block text-2xl font-black tracking-tight select-none">
-          <span class="text-white">cdn</span><span class="bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">mcp</span>
+          <span class="text-white">file</span><span class="bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">mcp</span>
         </NuxtLink>
       </div>
       <h1 class="text-2xl font-bold text-white text-center">Sign in</h1>
