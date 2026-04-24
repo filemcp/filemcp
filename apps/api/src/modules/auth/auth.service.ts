@@ -62,7 +62,7 @@ export class AuthService {
     const prefix = rawKey.slice(0, 16)
     const candidates = await this.prisma.apiKey.findMany({
       where: { revokedAt: null, keyPrefix: prefix },
-      include: { member: { include: { org: true } } },
+      include: { member: { include: { org: true, user: true } } },
     })
 
     for (const key of candidates) {
@@ -73,7 +73,7 @@ export class AuthService {
         })
         return {
           id: key.member.userId,
-          username: key.member.org.slug,
+          username: key.member.user.username,
           orgId: key.member.orgId,
           orgSlug: key.member.org.slug,
           role: key.member.role,
