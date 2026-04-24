@@ -109,6 +109,13 @@ AWS_ENV+=" AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID"
 AWS_ENV+=" AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY"
 [ -n "$AWS_SESSION_TOKEN" ] && AWS_ENV+=" AWS_SESSION_TOKEN=$AWS_SESSION_TOKEN"
 
+if [ -n "$ENV_FILE" ] && [ -f "$ENV_FILE" ]; then
+  while IFS='=' read -r key value; do
+    [[ "$key" =~ ^#.*$ || -z "$key" ]] && continue
+    AWS_ENV+=" $key=$value"
+  done < "$ENV_FILE"
+fi
+
 echo "Pulling images..."
 for service in "${SERVICES[@]}"; do
   echo "Pulling $service..."
