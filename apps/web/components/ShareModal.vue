@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const props = defineProps<{
-  username: string
+  org: string
   uuid: string
 }>()
 
@@ -11,7 +11,7 @@ const mode = ref<Mode>('comments')
 const copied = ref(false)
 
 const url = computed(() => {
-  const base = `${window.location.origin}/u/${props.username}/${props.uuid}`
+  const base = `${window.location.origin}/u/${props.org}/${props.uuid}`
   return mode.value === 'view' ? `${base}?mode=view` : base
 })
 

@@ -11,7 +11,7 @@ const { data, pending, refresh } = useApi<{ items: any[]; total: number }>(
 watch(() => auth.activeOrg?.slug, () => refresh())
 
 const visibilityOpen = ref<string | null>(null)
-const shareAsset = ref<{ id: string; username: string; uuid: string } | null>(null)
+const shareAsset = ref<{ id: string; org: string; uuid: string } | null>(null)
 
 const VISIBILITY_OPTIONS = [
   { value: 'PUBLIC',  label: 'Public',  desc: 'Anyone can view' },
@@ -75,7 +75,7 @@ if (import.meta.client) {
           :key="asset.id"
           class="bg-zinc-900 rounded-xl overflow-hidden border border-zinc-800 hover:border-zinc-600 transition group"
         >
-          <NuxtLink :to="`/u/${asset.owner.username}/${asset.uuid}`" class="block">
+          <NuxtLink :to="`/u/${asset.owner.org}/${asset.uuid}`" class="block">
             <div class="aspect-video bg-zinc-800 flex items-center justify-center">
               <img
                 v-if="asset.thumbnailUrl"
@@ -90,7 +90,7 @@ if (import.meta.client) {
           <div class="p-4 space-y-3">
             <div class="flex items-start justify-between gap-2">
               <NuxtLink
-                :to="`/u/${asset.owner.username}/${asset.uuid}`"
+                :to="`/u/${asset.owner.org}/${asset.uuid}`"
                 class="font-medium text-sm truncate hover:text-zinc-300"
               >
                 {{ asset.title ?? asset.slug }}
@@ -153,7 +153,7 @@ if (import.meta.client) {
             <div class="flex gap-2 items-center">
               <button
                 class="flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg border border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-white transition"
-                @click="shareAsset = { id: asset.id, username: asset.owner.username, uuid: asset.uuid }"
+                @click="shareAsset = { id: asset.id, org: asset.owner.org, uuid: asset.uuid }"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/>
@@ -174,7 +174,7 @@ if (import.meta.client) {
 
     <ShareModal
       v-if="shareAsset"
-      :username="shareAsset.username"
+      :org="shareAsset.org"
       :uuid="shareAsset.uuid"
       @close="shareAsset = null"
     />

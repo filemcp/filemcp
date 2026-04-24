@@ -1,11 +1,11 @@
 <script setup lang="ts">
 const route = useRoute()
-const username = route.params.username as string
+const org = route.params.org as string
 const uuid = route.params.uuid as string
 const version = route.params.version as string
 const viewMode = route.query.mode === 'view'
 
-const { data, error } = await useApi<any>(`/public/${username}/${uuid}/v/${version}`)
+const { data, error } = await useApi<any>(`/public/${org}/${uuid}/v/${version}`)
 
 if (error.value) {
   throw createError({ statusCode: 404, message: 'Version not found' })

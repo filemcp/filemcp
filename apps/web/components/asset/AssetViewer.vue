@@ -5,9 +5,10 @@ const props = defineProps<{
   viewMode?: boolean
   asset: {
     assetId: string
+    uuid: string
     slug: string
     title: string
-    owner: { username: string }
+    owner: { org: string }
     latestVersion: number
     currentVersion: {
       number: number
@@ -65,7 +66,7 @@ function printAsset() {
     <header class="flex items-center gap-4 px-4 py-3 border-b border-zinc-800 shrink-0">
       <NuxtLink to="/" class="font-bold text-sm">cdnmcp</NuxtLink>
       <span class="text-zinc-600">/</span>
-      <span class="text-zinc-400 text-sm">{{ asset.owner.username }}</span>
+      <span class="text-zinc-400 text-sm">{{ asset.owner.org }}</span>
       <span class="text-zinc-600">/</span>
       <span class="text-sm font-medium">{{ asset.title }}</span>
 
@@ -82,7 +83,7 @@ function printAsset() {
         <select
           class="bg-zinc-900 border border-zinc-700 rounded px-2 py-1 text-sm text-zinc-300"
           :value="asset.currentVersion.number"
-          @change="(e) => navigateTo(`/u/${asset.owner.username}/${asset.slug}/v/${(e.target as HTMLSelectElement).value}`)"
+          @change="(e) => navigateTo(`/u/${asset.owner.org}/${asset.uuid}/v/${(e.target as HTMLSelectElement).value}`)"
         >
           <option v-for="v in asset.latestVersion" :key="v" :value="v">v{{ v }}</option>
         </select>

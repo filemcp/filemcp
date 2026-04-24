@@ -188,7 +188,7 @@ export class AssetsService {
       slug: asset.slug,
       title: asset.title,
       visibility: asset.visibility,
-      owner: { username: asset.org.slug },
+      owner: { org: asset.org.slug },
       versions: asset.versions.map((v) => ({
         number: v.number,
         createdAt: v.createdAt,
@@ -255,7 +255,7 @@ export class AssetsService {
       uuid: asset.uuid,
       slug: asset.slug,
       title: asset.title ?? asset.slug,
-      owner: { username: asset.org.slug },
+      owner: { org: asset.org.slug },
       latestVersion: asset.versions[0]?.number ?? 1,
       currentVersion: {
         number: targetVersion.number,
@@ -320,7 +320,7 @@ export class AssetsService {
       thumbnailUrl: latest?.thumbnailPath ? this.storage.getPublicUrl(latest.thumbnailPath) : null,
       createdAt: asset.createdAt,
       updatedAt: asset.updatedAt,
-      owner: { username: asset.org.slug },
+      owner: { org: asset.org.slug },
     }
   }
 }

@@ -1,10 +1,10 @@
 <script setup lang="ts">
 const route = useRoute()
-const username = route.params.username as string
+const org = route.params.org as string
 const uuid = route.params.uuid as string
 const viewMode = route.query.mode === 'view'
 
-const { data, error } = await useApi<any>(`/public/${username}/${uuid}`)
+const { data, error } = await useApi<any>(`/public/${org}/${uuid}`)
 
 if (error.value) {
   throw createError({ statusCode: 404, message: 'Asset not found' })
@@ -13,7 +13,7 @@ if (error.value) {
 useSeoMeta({
   title: () => `${data.value?.title ?? uuid} — cdnmcp`,
   ogTitle: () => data.value?.title ?? uuid,
-  description: () => `Shared by ${username} on cdnmcp`,
+  description: () => `Shared by ${org} on cdnmcp`,
   ogImage: () => data.value?.currentVersion?.thumbnailUrl ?? undefined,
 })
 </script>
