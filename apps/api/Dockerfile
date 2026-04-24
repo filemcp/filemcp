@@ -6,6 +6,6 @@ COPY packages/ ./packages/
 COPY apps/api/package.json ./apps/api/
 RUN pnpm install --frozen-lockfile
 COPY apps/api/ ./apps/api/
-RUN cd apps/api && pnpm run build && pnpm exec prisma generate
+RUN cd apps/api && pnpm exec prisma generate && pnpm run build
 EXPOSE 4000
 CMD ["sh", "-c", "cd apps/api && pnpm exec prisma migrate deploy && node dist/main"]
