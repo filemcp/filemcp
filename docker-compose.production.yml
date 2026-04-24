@@ -1,0 +1,48 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-filemcp}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-filemcp}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+  api:
+    image: ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/filemcp-api:production-latest
+    ports:
+      - "4000:4000"
+    env_file: .env
+    depends_on:
+      - postgres
+      - redis
+    restart: unless-stopped
+
+  web:
+    image: ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/filemcp-web:production-latest
+    ports:
+      - "3000:3000"
+    env_file: .env
+    depends_on:
+      - api
+    restart: unless-stopped
+
+  worker:
+    image: ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/filemcp-worker:production-latest
+    env_file: .env
+    depends_on:
+      - redis
+      - postgres
+      - api
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
