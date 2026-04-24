@@ -20,9 +20,10 @@ services:
   minio:
     image: minio/minio:latest
     command: server /data --console-address ":9001"
+    env_file: .env
     environment:
-      MINIO_ROOT_USER: filemcp
-      MINIO_ROOT_PASSWORD: filemcp_secret
+      MINIO_ROOT_USER: ${S3_ACCESS_KEY}
+      MINIO_ROOT_PASSWORD: ${S3_SECRET_KEY}
     ports:
       - "9000:9000"
       - "9001:9001"
@@ -36,9 +37,9 @@ services:
     entrypoint: >
       /bin/sh -c "
         sleep 3;
-        mc alias set local http://minio:9000 filemcp filemcp_secret;
-        mc mb local/filemcp-assets --ignore-existing;
-        mc anonymous set download local/filemcp-assets;
+        mc alias set local http://minio:9000 ${S3_ACCESS_KEY} ${S3_SECRET_KEY};
+        mc mb local/${S3_BUCKET} --ignore-existing;
+        mc anonymous set download local/${S3_BUCKET};
         exit 0;
       "
 
@@ -47,26 +48,16 @@ services:
     working_dir: /app
     command: sh -c "corepack enable && pnpm install && cd apps/api && pnpm exec prisma generate && pnpm exec prisma migrate deploy && pnpm run dev"
     ports:
-      - "4000:4000"
+      - "${PORT:-4000}:${PORT:-4000}"
     volumes:
       - .:/app
       - pnpm_store:/root/.local/share/pnpm/store
+    env_file: .env
     environment:
+      # Override .env — these hostnames only resolve inside the Docker network
       DATABASE_URL: postgresql://filemcp:filemcp@postgres:5432/filemcp
       REDIS_URL: redis://redis:6379
-      JWT_SECRET: dev-secret-change-in-prod
-      JWT_ACCESS_EXPIRES_IN: 7d
-      JWT_REFRESH_EXPIRES_IN: 7d
       S3_ENDPOINT: http://minio:9000
-      S3_PUBLIC_ENDPOINT: http://localhost:9000
-      S3_REGION: us-east-1
-      S3_BUCKET: filemcp-assets
-      S3_ACCESS_KEY: filemcp
-      S3_SECRET_KEY: filemcp_secret
-      S3_PUBLIC_URL: http://localhost:9000/filemcp-assets
-      APP_URL: http://localhost:3000
-      API_URL: http://localhost:4000
-      PORT: 4000
     depends_on:
       - postgres
       - redis
@@ -82,8 +73,8 @@ services:
       - .:/app
       - pnpm_store:/root/.local/share/pnpm/store
     environment:
-      NUXT_API_URL: http://api:4000/api
-      NUXT_PUBLIC_API_URL: http://localhost:4000/api
+      NUXT_API_URL: http://api:${PORT:-4000}/api
+      NUXT_PUBLIC_API_URL: ${API_URL}
     depends_on:
       - api
 
@@ -100,14 +91,12 @@ services:
     volumes:
       - .:/app
       - pnpm_store:/root/.local/share/pnpm/store
+    env_file: .env
     environment:
+      # Override .env — these hostnames only resolve inside the Docker network
       DATABASE_URL: postgresql://filemcp:filemcp@postgres:5432/filemcp
       REDIS_URL: redis://redis:6379
       S3_ENDPOINT: http://minio:9000
-      S3_REGION: us-east-1
-      S3_BUCKET: filemcp-assets
-      S3_ACCESS_KEY: filemcp
-      S3_SECRET_KEY: filemcp_secret
     depends_on:
       - redis
       - postgres

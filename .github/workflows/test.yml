@@ -8,7 +8,6 @@ jobs:
   backend:
     name: Backend (Jest)
     runs-on: ubuntu-latest
-    continue-on-error: true
 
     services:
       postgres:
@@ -40,15 +39,17 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Generate Prisma client
+        working-directory: apps/api
+        run: pnpm exec prisma generate
+
       - name: Run tests
         working-directory: apps/api
-        continue-on-error: true
         run: pnpm test --forceExit --ci
 
   frontend:
     name: Frontend (Vitest)
     runs-on: ubuntu-latest
-    continue-on-error: true
 
     steps:
       - uses: actions/checkout@v4
@@ -67,5 +68,4 @@ jobs:
 
       - name: Run tests
         working-directory: apps/web
-        continue-on-error: true
         run: pnpm test

@@ -1,12 +1,31 @@
+# Dependencies
 node_modules/
+.pnpm-store/
+
+# Environment — copy .env.example to .env and fill in your values
+.env
+.env.local
+.env.*.local
+apps/api/.env
+apps/web/.env
+
+# Build output
 dist/
 .output/
 .nuxt/
-.env
-.env.local
-.pnpm-store
-*.env.local
-*.log
-.DS_Store
 coverage/
-.turbo/
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
