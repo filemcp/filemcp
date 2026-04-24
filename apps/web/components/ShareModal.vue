@@ -1,7 +1,7 @@
 <script setup lang="ts">
 const props = defineProps<{
   username: string
-  slug: string
+  uuid: string
 }>()
 
 const emit = defineEmits<{ close: [] }>()
@@ -11,7 +11,7 @@ const mode = ref<Mode>('comments')
 const copied = ref(false)
 
 const url = computed(() => {
-  const base = `${window.location.origin}/u/${props.username}/${props.slug}`
+  const base = `${window.location.origin}/u/${props.username}/${props.uuid}`
   return mode.value === 'view' ? `${base}?mode=view` : base
 })
 

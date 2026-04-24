@@ -63,6 +63,7 @@ model ApiKey {
 
 model Asset {
   id         String     @id @default(cuid())
+  uuid       String     @unique @default(uuid())
   slug       String
   title      String?
   visibility Visibility @default(PUBLIC)
