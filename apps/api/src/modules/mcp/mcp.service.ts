@@ -137,7 +137,7 @@ export class McpService {
       const ext = filename.split('.').pop()?.toLowerCase() ?? 'txt'
       const mime = MIME_TYPES[ext] ?? 'text/plain'
       const token = req.headers.authorization
-      const apiBase = `${req.protocol}://${req.get('host')}/api`
+      const apiBase = `${this.config.get('API_URL')}/api`
 
       const baseSlug = filename.replace(/\.[^.]+$/, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
       const resolvedSlug = slug ?? `${baseSlug}-${ext}`
