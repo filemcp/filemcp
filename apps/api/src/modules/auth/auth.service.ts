@@ -59,12 +59,13 @@ export class AuthService {
   async validateApiKey(rawKey: string) {
     if (!rawKey.startsWith('cdnmcp_')) return null
 
-    const keys = await this.prisma.apiKey.findMany({
-      where: { revokedAt: null },
+    const prefix = rawKey.slice(0, 16)
+    const candidates = await this.prisma.apiKey.findMany({
+      where: { revokedAt: null, keyPrefix: prefix },
       include: { member: { include: { org: true } } },
     })
 
-    for (const key of keys) {
+    for (const key of candidates) {
       if (await bcrypt.compare(rawKey, key.keyHash)) {
         await this.prisma.apiKey.update({
           where: { id: key.id },

@@ -49,6 +49,7 @@ model ApiKey {
   id            String    @id @default(cuid())
   name          String
   keyHash       String    @unique
+  keyPrefix     String
   lastFourChars String
   lastUsedAt    DateTime?
   createdAt     DateTime  @default(now())
@@ -56,6 +57,8 @@ model ApiKey {
 
   memberId String
   member   OrgMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@index([keyPrefix])
 }
 
 model Asset {

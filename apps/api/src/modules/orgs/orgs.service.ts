@@ -147,7 +147,7 @@ export class OrgsService {
     const rawKey = `cdnmcp_${randomBytes(24).toString('hex')}`
     const keyHash = await bcrypt.hash(rawKey, 12)
     const record = await this.prisma.apiKey.create({
-      data: { memberId: member.id, name, keyHash, lastFourChars: rawKey.slice(-4) },
+      data: { memberId: member.id, name, keyHash, keyPrefix: rawKey.slice(0, 16), lastFourChars: rawKey.slice(-4) },
     })
     return { id: record.id, name: record.name, lastFourChars: record.lastFourChars, key: rawKey }
   }
