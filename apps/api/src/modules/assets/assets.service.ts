@@ -13,7 +13,7 @@ import { RenderService } from '../render/render.service'
 import { ThumbnailService } from '../thumbnail/thumbnail.service'
 import { UploadAssetDto } from './dto/upload-asset.dto'
 import { UpdateAssetDto } from './dto/update-asset.dto'
-import { generateSlug } from '../../utils/slug'
+import { generateSlug, slugify } from '../../utils/slug'
 
 const DEFAULT_MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
 
@@ -69,9 +69,11 @@ export class AssetsService {
     }
 
     const org = await this.prisma.organization.findUniqueOrThrow({ where: { id: orgId } })
-    const slug = dto.slug ?? generateSlug()
+    const ext = FILE_TYPE_EXTENSION[fileType]
+    const baseName = file.originalname.replace(/\.[^.]+$/, '')
+    const slug = `${slugify(baseName)}-${ext}` || generateSlug()
 
-    // Enforce org asset limit for new assets (upsert on existing slug is always allowed)
+    // Enforce org asset limit
     const existingAsset = await this.prisma.asset.findUnique({ where: { orgId_slug: { orgId, slug } } })
     if (!existingAsset) {
       const [assetCount, memberCount] = await Promise.all([
@@ -90,7 +92,7 @@ export class AssetsService {
 
     const asset = await this.prisma.asset.upsert({
       where: { orgId_slug: { orgId, slug } },
-      create: { orgId, slug, title: dto.title ?? slug, visibility: dto.visibility },
+      create: { orgId, slug, title: dto.title ?? file.originalname.replace(/\.[^.]+$/, ''), visibility: dto.visibility },
       update: { updatedAt: new Date() },
     })
 
@@ -100,7 +102,6 @@ export class AssetsService {
     })
     const versionNumber = (lastVersion?.number ?? 0) + 1
 
-    const ext = FILE_TYPE_EXTENSION[fileType]
     const originalKey = this.storage.assetKey(orgId, asset.id, versionNumber, `original.${ext}`)
     await this.storage.upload(originalKey, file.buffer, file.mimetype)
 
@@ -239,16 +240,17 @@ export class AssetsService {
       ? `/api/public/${orgSlug}/${uuid}/v/${versionNumber}/content`
       : `/api/public/${orgSlug}/${uuid}/content`
 
-    const [isOwnerMember, updated] = await Promise.all([
-      requestingUserId
-        ? this.prisma.orgMember.findFirst({ where: { orgId: asset.orgId, userId: requestingUserId } }).then(Boolean)
-        : Promise.resolve(false),
-      this.prisma.asset.update({
-        where: { id: asset.id },
-        data: { viewCount: { increment: 1 } },
-        select: { viewCount: true },
-      }),
-    ])
+    const isOwnerMember = requestingUserId
+      ? await this.prisma.orgMember.findFirst({ where: { orgId: asset.orgId, userId: requestingUserId } }).then(Boolean)
+      : false
+
+    const updated = isOwnerMember
+      ? await this.prisma.asset.findUnique({ where: { id: asset.id }, select: { viewCount: true } }) ?? { viewCount: asset.viewCount }
+      : await this.prisma.asset.update({
+          where: { id: asset.id },
+          data: { viewCount: { increment: 1 } },
+          select: { viewCount: true },
+        })
 
     return {
       assetId: asset.id,

@@ -22,11 +22,6 @@ const TOOLS = [
           type: 'string',
           description: 'Filename with extension, e.g. "deck.html". Used to detect the file type.',
         },
-        slug: {
-          type: 'string',
-          description: 'Custom URL slug (optional). Generated automatically if omitted.',
-          pattern: '^[a-z0-9-]+$',
-        },
       },
       required: ['filepath', 'filename'],
     },
@@ -133,20 +128,16 @@ export class McpService {
         throw new Error('Your API key has read-only access. Upload requires WRITE or OWNER role.')
       }
 
-      const { filepath, filename, slug } = args
+      const { filepath, filename } = args
       const ext = filename.split('.').pop()?.toLowerCase() ?? 'txt'
       const mime = MIME_TYPES[ext] ?? 'text/plain'
       const token = req.headers.authorization
       const apiBase = `${this.config.get('API_URL')}/api`
 
-      const baseSlug = filename.replace(/\.[^.]+$/, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
-      const resolvedSlug = slug ?? `${baseSlug}-${ext}`
-
       const mcpMaxMb = this.config.get<number>('MCP_MAX_FILE_SIZE_MB', 5)
-      const fields = [`-F "file=@${filepath};type=${mime}"`, `-F "slug=${resolvedSlug}"`]
-      const cmd = `curl -s -X POST "${apiBase}/orgs/${orgSlug}/assets" -H "Authorization: ${token}" -H "X-Upload-Source: mcp" ${fields.join(' ')}`
+      const cmd = `curl -s -X POST "${apiBase}/orgs/${orgSlug}/assets" -H "Authorization: ${token}" -H "X-Upload-Source: mcp" -F "file=@${filepath};type=${mime}"`
 
-      console.log('[MCP] upload_asset curl', { filepath, filename, slug, orgSlug })
+      console.log('[MCP] upload_asset curl', { filepath, filename, orgSlug })
 
       return {
         content: [
