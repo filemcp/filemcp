@@ -49,6 +49,9 @@ function handleViewerClick(event: { xPct: number; yPct: number; selectorHint: st
   commentStore.setPendingAnchor(event)
 }
 
+onMounted(() => commentStore.setPendingAnchor(null))
+onUnmounted(() => commentStore.setPendingAnchor(null))
+
 const htmlRendererRef = ref<{ print: () => void } | null>(null)
 
 function printAsset() {
