@@ -66,6 +66,8 @@ model Asset {
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @updatedAt
 
+  viewCount  Int        @default(0)
+
   orgId    String
   org      Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
   versions Version[]

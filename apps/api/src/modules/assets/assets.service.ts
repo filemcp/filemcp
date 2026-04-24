@@ -237,9 +237,16 @@ export class AssetsService {
       ? `/api/public/${orgSlug}/${slug}/v/${versionNumber}/content`
       : `/api/public/${orgSlug}/${slug}/content`
 
-    const isOwnerMember = requestingUserId
-      ? !!(await this.prisma.orgMember.findFirst({ where: { orgId: asset.orgId, userId: requestingUserId } }))
-      : false
+    const [isOwnerMember, updated] = await Promise.all([
+      requestingUserId
+        ? this.prisma.orgMember.findFirst({ where: { orgId: asset.orgId, userId: requestingUserId } }).then(Boolean)
+        : Promise.resolve(false),
+      this.prisma.asset.update({
+        where: { id: asset.id },
+        data: { viewCount: { increment: 1 } },
+        select: { viewCount: true },
+      }),
+    ])
 
     return {
       assetId: asset.id,
@@ -256,6 +263,7 @@ export class AssetsService {
           : null,
       },
       commentCount: asset._count.comments,
+      viewCount: updated.viewCount,
       visibility: asset.visibility,
       isOwner: isOwnerMember,
     }
@@ -303,6 +311,7 @@ export class AssetsService {
       visibility: asset.visibility,
       latestVersion: latest?.number ?? 0,
       commentCount: asset._count.comments,
+      viewCount: asset.viewCount,
       thumbnailUrl: latest?.thumbnailPath ? this.storage.getPublicUrl(latest.thumbnailPath) : null,
       createdAt: asset.createdAt,
       updatedAt: asset.updatedAt,

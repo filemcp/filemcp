@@ -16,6 +16,7 @@ const props = defineProps<{
       thumbnailUrl: string | null
     }
     commentCount: number
+    viewCount: number
     visibility: string
     isOwner: boolean
   }
@@ -69,6 +70,14 @@ function printAsset() {
       <span class="text-sm font-medium">{{ asset.title }}</span>
 
       <div class="ml-auto flex items-center gap-3">
+        <!-- View count -->
+        <span class="flex items-center gap-1 text-xs text-zinc-500">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+          </svg>
+          {{ asset.viewCount }}
+        </span>
+
         <!-- Version selector -->
         <select
           class="bg-zinc-900 border border-zinc-700 rounded px-2 py-1 text-sm text-zinc-300"
