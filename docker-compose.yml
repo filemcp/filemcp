@@ -21,9 +21,6 @@ services:
     image: minio/minio:latest
     command: server /data --console-address ":9001"
     env_file: .env
-    environment:
-      MINIO_ROOT_USER: ${S3_ACCESS_KEY}
-      MINIO_ROOT_PASSWORD: ${S3_SECRET_KEY}
     ports:
       - "9000:9000"
       - "9001:9001"
@@ -32,14 +29,15 @@ services:
 
   minio-init:
     image: minio/mc:latest
+    env_file: .env
     depends_on:
       - minio
     entrypoint: >
       /bin/sh -c "
         sleep 3;
-        mc alias set local http://minio:9000 ${S3_ACCESS_KEY} ${S3_SECRET_KEY};
-        mc mb local/${S3_BUCKET} --ignore-existing;
-        mc anonymous set download local/${S3_BUCKET};
+        mc alias set local http://minio:9000 $$MINIO_ROOT_USER $$MINIO_ROOT_PASSWORD;
+        mc mb local/$$S3_BUCKET --ignore-existing;
+        mc anonymous set download local/$$S3_BUCKET;
         exit 0;
       "
 
@@ -53,11 +51,6 @@ services:
       - .:/app
       - pnpm_store:/root/.local/share/pnpm/store
     env_file: .env
-    environment:
-      # Override .env — these hostnames only resolve inside the Docker network
-      DATABASE_URL: postgresql://filemcp:filemcp@postgres:5432/filemcp
-      REDIS_URL: redis://redis:6379
-      S3_ENDPOINT: http://minio:9000
     depends_on:
       - postgres
       - redis
@@ -72,9 +65,7 @@ services:
     volumes:
       - .:/app
       - pnpm_store:/root/.local/share/pnpm/store
-    environment:
-      NUXT_API_URL: http://api:${PORT:-4000}/api
-      NUXT_PUBLIC_API_URL: ${API_URL}
+    env_file: .env
     depends_on:
       - api
 
@@ -92,11 +83,6 @@ services:
       - .:/app
       - pnpm_store:/root/.local/share/pnpm/store
     env_file: .env
-    environment:
-      # Override .env — these hostnames only resolve inside the Docker network
-      DATABASE_URL: postgresql://filemcp:filemcp@postgres:5432/filemcp
-      REDIS_URL: redis://redis:6379
-      S3_ENDPOINT: http://minio:9000
     depends_on:
       - redis
       - postgres

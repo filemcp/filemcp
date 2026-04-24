@@ -1,5 +1,5 @@
 export default defineNuxtConfig({
-  devtools: { enabled: true },
+  devtools: { enabled: false },
 
   app: {
     head: {
@@ -18,12 +18,6 @@ gtag('config', 'G-PWPG88HHHM');`,
     },
   },
 
-  vite: {
-    server: {
-      allowedHosts: true,
-    },
-  },
-
   modules: [
     '@pinia/nuxt',
     '@nuxtjs/tailwindcss',
@@ -31,10 +25,10 @@ gtag('config', 'G-PWPG88HHHM');`,
   ],
 
   runtimeConfig: {
-    // Server-side only — direct connection to NestJS
+    // Server-side only — direct connection to NestJS (container-to-container in Docker)
     apiUrl: process.env.NUXT_API_URL ?? 'http://localhost:4000/api',
     public: {
-      // Browser-accessible — relative so it works through any tunnel/proxy
+      // Browser-accessible — goes through the Nuxt server route proxy at /api/**
       apiUrl: process.env.NUXT_PUBLIC_API_URL ?? '/api',
       appUrl: process.env.NUXT_PUBLIC_APP_URL ?? '',
     },
@@ -44,7 +38,7 @@ gtag('config', 'G-PWPG88HHHM');`,
     '/dashboard/**': { ssr: false },
     '/u/**': { ssr: true },
     '/': { prerender: true },
-    '/api/**': { proxy: `${process.env.NUXT_API_URL ?? 'http://localhost:4000/api'}/**` }
+    '/api/**': { proxy: `${process.env.NUXT_API_URL ?? 'http://localhost:4000/api'}/**` },
   },
 
   typescript: {
