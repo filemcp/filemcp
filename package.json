@@ -1,15 +1,15 @@
 {
-  "name": "cdnmcp",
+  "name": "filemcp",
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "dev:api": "pnpm --filter @cdnmcp/api dev",
-    "dev:web": "pnpm --filter @cdnmcp/web dev",
+    "dev:api": "pnpm --filter @filemcp/api dev",
+    "dev:web": "pnpm --filter @filemcp/web dev",
     "dev": "concurrently \"pnpm dev:api\" \"pnpm dev:web\"",
-    "build:api": "pnpm --filter @cdnmcp/api build",
-    "build:web": "pnpm --filter @cdnmcp/web build",
-    "db:migrate": "pnpm --filter @cdnmcp/api db:migrate",
-    "db:studio": "pnpm --filter @cdnmcp/api db:studio",
+    "build:api": "pnpm --filter @filemcp/api build",
+    "build:web": "pnpm --filter @filemcp/web build",
+    "db:migrate": "pnpm --filter @filemcp/api db:migrate",
+    "db:studio": "pnpm --filter @filemcp/api db:studio",
     "typecheck": "pnpm -r typecheck"
   },
   "devDependencies": {

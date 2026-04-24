@@ -95,7 +95,7 @@ function copyKey() {
         >
           <div class="space-y-0.5">
             <p class="text-sm font-medium">{{ key.name }}</p>
-            <p class="text-xs text-zinc-500 font-mono">cdnmcp_••••{{ key.lastFourChars }}</p>
+            <p class="text-xs text-zinc-500 font-mono">filemcp_••••{{ key.lastFourChars }}</p>
           </div>
           <div class="flex items-center gap-4 text-xs text-zinc-500">
             <span v-if="key.lastUsedAt">Used {{ new Date(key.lastUsedAt).toLocaleDateString() }}</span>

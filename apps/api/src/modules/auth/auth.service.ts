@@ -57,7 +57,7 @@ export class AuthService {
   }
 
   async validateApiKey(rawKey: string) {
-    if (!rawKey.startsWith('cdnmcp_')) return null
+    if (!rawKey.startsWith('filemcp_')) return null
 
     const prefix = rawKey.slice(0, 16)
     const candidates = await this.prisma.apiKey.findMany({

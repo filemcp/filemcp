@@ -79,7 +79,7 @@ async function submit() {
           />
           <p class="text-xs text-zinc-600 px-1">
             Your assets will live at
-            <span class="text-zinc-400 font-mono">cdnmcp.com/u/{{ orgSlugPreview || '…' }}/</span>
+            <span class="text-zinc-400 font-mono">filemcp.com/u/{{ orgSlugPreview || '…' }}/</span>
           </p>
         </div>
         <input

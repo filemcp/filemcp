@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Comment } from '@cdnmcp/types'
+import type { Comment } from '@filemcp/types'
 
 const props = defineProps<{
   comments: Comment[]

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Comment } from '@cdnmcp/types'
+import type { Comment } from '@filemcp/types'
 
 const props = defineProps<{
   viewMode?: boolean
@@ -67,7 +67,7 @@ function printAsset() {
   <div class="h-screen flex flex-col bg-zinc-950 text-white overflow-hidden">
     <!-- Top bar -->
     <header class="flex items-center gap-4 px-4 py-3 border-b border-zinc-800 shrink-0">
-      <NuxtLink to="/" class="font-bold text-sm">cdnmcp</NuxtLink>
+      <NuxtLink to="/" class="font-bold text-sm">filemcp</NuxtLink>
       <span class="text-zinc-600">/</span>
       <span class="text-zinc-400 text-sm">{{ asset.owner.org }}</span>
       <span class="text-zinc-600">/</span>

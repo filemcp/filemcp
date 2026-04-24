@@ -1,5 +1,5 @@
 {
-  "name": "@cdnmcp/worker",
+  "name": "@filemcp/worker",
   "version": "0.0.1",
   "scripts": {
     "dev": "tsx --watch src/index.ts",

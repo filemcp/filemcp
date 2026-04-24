@@ -1,10 +1,10 @@
-# cdnmcp — Claude Code Project Context
+# filemcp — Claude Code Project Context
 
 ## What We're Building
 
 A hosting platform for AI-generated assets. The hypothesis: terminal AI is now good enough that PowerPoint, certain docs, and other rich content will increasingly be generated as HTML/Markdown/JSON rather than created in traditional tools. The missing piece is **distribution** — a fast, clean way to push a generated file and get a shareable URL that renders it beautifully.
 
-Think "Vercel for single AI-generated artifacts." Generate a deck with Claude, `curl` it to cdnmcp, get a URL back in one second.
+Think "Vercel for single AI-generated artifacts." Generate a deck with Claude, `curl` it to filemcp, get a URL back in one second.
 
 ## Core Product Decisions (locked)
 
@@ -64,7 +64,7 @@ Think "Vercel for single AI-generated artifacts." Generate a deck with Claude, `
 ## Project Structure (target)
 
 ```
-cdnmcp/
+filemcp/
 ├── apps/
 │   ├── api/          # NestJS backend
 │   └── web/          # Nuxt 3 frontend

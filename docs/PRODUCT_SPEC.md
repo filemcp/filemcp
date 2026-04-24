@@ -1,4 +1,4 @@
-# Product Specification — cdnmcp
+# Product Specification — filemcp
 
 ## Problem
 
@@ -13,7 +13,7 @@ People are currently emailing HTML files, pasting into Notion, or running `pytho
 
 ## Solution
 
-cdnmcp is a hosting platform for AI-generated assets. Upload a file via `curl` or API key, get a permanent, shareable URL that renders it. Collaborators can view and comment inline without any account required to view (only to comment).
+filemcp is a hosting platform for AI-generated assets. Upload a file via `curl` or API key, get a permanent, shareable URL that renders it. Collaborators can view and comment inline without any account required to view (only to comment).
 
 ---
 
@@ -55,7 +55,7 @@ Binary files (images, PDFs, video) are out of scope for v1.
 
 **Upload via curl (API key auth)**
 ```bash
-curl -X POST https://cdnmcp.com/api/assets \
+curl -X POST https://filemcp.com/api/assets \
   -H "Authorization: Bearer <api-key>" \
   -F "file=@deck.html" \
   -F "slug=q3-review"
@@ -64,9 +64,9 @@ curl -X POST https://cdnmcp.com/api/assets \
 Response:
 ```json
 {
-  "url": "https://cdnmcp.com/u/username/q3-review",
+  "url": "https://filemcp.com/u/username/q3-review",
   "version": 1,
-  "versionUrl": "https://cdnmcp.com/u/username/q3-review/v/1",
+  "versionUrl": "https://filemcp.com/u/username/q3-review/v/1",
   "assetId": "asset_xyz"
 }
 ```
@@ -191,7 +191,7 @@ Privacy is per-asset (not per-version). All versions of an asset share the same 
 An MCP server so Claude Code and other MCP-compatible clients can upload assets without leaving the AI conversation:
 
 ```
-Tool: cdnmcp_upload
+Tool: filemcp_upload
 Input: { content: string, filename: string, slug?: string }
 Output: { url: string, version: number }
 ```

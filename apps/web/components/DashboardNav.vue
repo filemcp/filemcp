@@ -43,7 +43,7 @@ const ROLE_COLOR: Record<string, string> = {
 <template>
   <nav class="border-b border-zinc-800 px-6 py-4 flex items-center justify-between">
     <div class="flex items-center gap-6">
-      <NuxtLink to="/" class="font-bold text-lg">cdnmcp</NuxtLink>
+      <NuxtLink to="/" class="font-bold text-lg">filemcp</NuxtLink>
       <div class="flex gap-4 text-sm">
         <NuxtLink to="/dashboard" class="text-zinc-400 hover:text-white transition-colors" active-class="!text-white">Assets</NuxtLink>
         <NuxtLink to="/dashboard/members" class="text-zinc-400 hover:text-white transition-colors" active-class="!text-white">Members</NuxtLink>

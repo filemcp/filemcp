@@ -1,4 +1,4 @@
-# Architecture — cdnmcp
+# Architecture — filemcp
 
 ## System Overview
 
@@ -272,9 +272,9 @@ apps/web/
 
 ### CLI / curl (API Key)
 1. User creates a named API key in dashboard
-2. Key is shown once — format: `cdnmcp_<32 random chars>`
+2. Key is shown once — format: `filemcp_<32 random chars>`
 3. Sent as `Authorization: Bearer <key>` header
-4. Backend identifies `cdnmcp_` prefix and routes to `ApiKeyGuard` instead of `JwtGuard`
+4. Backend identifies `filemcp_` prefix and routes to `ApiKeyGuard` instead of `JwtGuard`
 5. Key is hashed (bcrypt) before storage; plaintext never stored
 
 ---
@@ -325,7 +325,7 @@ apps/web/
 - File uploads: MIME type validated server-side (not just extension), content scanned for script injection in non-HTML types
 - Rate limiting on upload endpoints (100/day per API key, 10/minute burst)
 - Public asset routes: no auth leak — visibility check returns 404 (not 403) for private assets to prevent enumeration
-- CORS: `api.cdnmcp.com` only accepts origins from `cdnmcp.com` for credentialed requests
+- CORS: `api.filemcp.com` only accepts origins from `filemcp.com` for credentialed requests
 
 ---
 

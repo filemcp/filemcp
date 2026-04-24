@@ -12,7 +12,7 @@ export class ApiKeyStrategy extends PassportStrategy(Strategy, 'api-key') {
 
   async validate(req: Request) {
     const header = req.headers.authorization
-    if (!header?.startsWith('Bearer cdnmcp_')) {
+    if (!header?.startsWith('Bearer filemcp_')) {
       throw new UnauthorizedException()
     }
     const key = header.slice('Bearer '.length)

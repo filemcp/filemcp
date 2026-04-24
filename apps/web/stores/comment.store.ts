@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import type { Comment } from '@cdnmcp/types'
+import type { Comment } from '@filemcp/types'
 
 interface CommentState {
   comments: Comment[]

@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import type { User } from '@cdnmcp/types'
+import type { User } from '@filemcp/types'
 
 interface OrgSummary {
   slug: string

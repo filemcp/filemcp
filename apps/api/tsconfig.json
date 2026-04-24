@@ -12,7 +12,7 @@
     "emitDecoratorMetadata": true,
     "strictPropertyInitialization": false,
     "paths": {
-      "@cdnmcp/types": ["../../packages/types/src/index.ts"]
+      "@filemcp/types": ["../../packages/types/src/index.ts"]
     }
   },
   "include": ["src/**/*"],

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const props = withDefaults(defineProps<{ apiKey?: string }>(), {
-  apiKey: 'cdnmcp_...',
+  apiKey: 'filemcp_...',
 })
 
 const config = useRuntimeConfig()
@@ -20,7 +20,7 @@ const jsonConfig = computed(() =>
   JSON.stringify(
     {
       mcpServers: {
-        cdnmcp: {
+        filemcp: {
           type: 'streamable-http',
           url: mcpUrl.value,
           headers: {
@@ -36,12 +36,12 @@ const jsonConfig = computed(() =>
 
 const codexCommand = computed(
   () =>
-    `codex --mcp-server '{"name":"cdnmcp","url":"${mcpUrl.value}","headers":{"Authorization":"Bearer ${props.apiKey}"}}'`,
+    `codex --mcp-server '{"name":"filemcp","url":"${mcpUrl.value}","headers":{"Authorization":"Bearer ${props.apiKey}"}}'`,
 )
 
 const claudeCommand = computed(
   () =>
-    `claude mcp add --transport http cdnmcp ${mcpUrl.value} -H "Authorization: Bearer ${props.apiKey}"`,
+    `claude mcp add --transport http filemcp ${mcpUrl.value} -H "Authorization: Bearer ${props.apiKey}"`,
 )
 
 const activeContent = computed(() => {

@@ -10,7 +10,7 @@ const TOOLS = [
   {
     name: 'upload_asset',
     description:
-      'Upload a file to cdnmcp and get back a shareable URL. Returns a curl command — run it with Bash to perform the upload. Supports HTML, Markdown, JSON, CSS, JS, SVG, and plain text. Requires WRITE or OWNER role. Maximum file size: 5MB.',
+      'Upload a file to filemcp and get back a shareable URL. Returns a curl command — run it with Bash to perform the upload. Supports HTML, Markdown, JSON, CSS, JS, SVG, and plain text. Requires WRITE or OWNER role. Maximum file size: 5MB.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -33,7 +33,7 @@ const TOOLS = [
   },
   {
     name: 'list_assets',
-    description: 'List your uploaded assets on cdnmcp.',
+    description: 'List your uploaded assets on filemcp.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -45,7 +45,7 @@ const TOOLS = [
   {
     name: 'get_asset',
     description:
-      'Download the content of an asset from cdnmcp. Returns the raw file content so you can read or edit it. Use this when you want to work on an existing asset.',
+      'Download the content of an asset from filemcp. Returns the raw file content so you can read or edit it. Use this when you want to work on an existing asset.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -108,7 +108,7 @@ export class McpService {
         return {
           protocolVersion: params?.protocolVersion ?? '2025-11-25',
           capabilities: { tools: {} },
-          serverInfo: { name: 'cdnmcp', version: '0.0.1' },
+          serverInfo: { name: 'filemcp', version: '0.0.1' },
         }
 
       case 'tools/list':

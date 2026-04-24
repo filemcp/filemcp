@@ -7,7 +7,7 @@ UP_FLAGS="-d"
 BASE_COMPOSE_FILE="docker-compose.yml"
 
 function show_help() {
-  echo "cdnmcp Docker Helper"
+  echo "filemcp Docker Helper"
   echo ""
   echo "Usage: ./bb [command] [options]"
   echo ""
@@ -76,7 +76,7 @@ function start() {
   check_docker
   check_files
 
-  echo "========== Starting cdnmcp =========="
+  echo "========== Starting filemcp =========="
 
   echo "Stopping any running containers..."
   compose down 2>/dev/null || true

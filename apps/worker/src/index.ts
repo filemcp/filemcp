@@ -16,14 +16,14 @@ const connection = {
 }
 
 const s3Endpoint = process.env.S3_ENDPOINT ?? 'http://minio:9000'
-const s3Bucket = process.env.S3_BUCKET ?? 'cdnmcp-assets'
+const s3Bucket = process.env.S3_BUCKET ?? 'filemcp-assets'
 
 const s3 = new S3Client({
   endpoint: s3Endpoint,
   region: process.env.S3_REGION ?? 'us-east-1',
   credentials: {
-    accessKeyId: process.env.S3_ACCESS_KEY ?? 'cdnmcp',
-    secretAccessKey: process.env.S3_SECRET_KEY ?? 'cdnmcp_secret',
+    accessKeyId: process.env.S3_ACCESS_KEY ?? 'filemcp',
+    secretAccessKey: process.env.S3_SECRET_KEY ?? 'filemcp_secret',
   },
   forcePathStyle: true,
 })

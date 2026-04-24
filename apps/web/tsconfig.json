@@ -7,7 +7,7 @@
     "lib": ["ESNext", "DOM"],
     "jsx": "preserve",
     "paths": {
-      "@cdnmcp/types": ["../../packages/types/src/index.ts"]
+      "@filemcp/types": ["../../packages/types/src/index.ts"]
     }
   },
   "include": [

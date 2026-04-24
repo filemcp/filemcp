@@ -28,7 +28,7 @@ async function bootstrap() {
   })
 
   const swagger = new DocumentBuilder()
-    .setTitle('cdnmcp API')
+    .setTitle('filemcp API')
     .setVersion('1.0')
     .addBearerAuth()
     .build()

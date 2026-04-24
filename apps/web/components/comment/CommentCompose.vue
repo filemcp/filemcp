@@ -44,7 +44,7 @@ async function submit() {
       headers: { 'Content-Type': 'application/json' },
     })
 
-    if (res.nudge && !localStorage.getItem('cdnmcp_nudge_dismissed')) {
+    if (res.nudge && !localStorage.getItem('filemcp_nudge_dismissed')) {
       nudge.value = res.nudge
     } else {
       emit('submitted')
@@ -55,7 +55,7 @@ async function submit() {
 }
 
 function dismissNudge() {
-  localStorage.setItem('cdnmcp_nudge_dismissed', '1')
+  localStorage.setItem('filemcp_nudge_dismissed', '1')
   nudge.value = null
   emit('submitted')
 }

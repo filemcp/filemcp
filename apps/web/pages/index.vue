@@ -2,7 +2,7 @@
 definePageMeta({ middleware: 'guest' })
 
 useSeoMeta({
-  title: 'cdnmcp — Host AI-generated assets instantly',
+  title: 'filemcp — Host AI-generated assets instantly',
   description: 'Push an HTML deck or Markdown report from your terminal and get a shareable URL in seconds.',
 })
 </script>

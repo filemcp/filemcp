@@ -1,6 +1,6 @@
-# API Specification — cdnmcp
+# API Specification — filemcp
 
-Base URL: `https://cdnmcp.com/api`
+Base URL: `https://filemcp.com/api`
 
 All responses are JSON. Errors follow the shape:
 ```json
@@ -9,7 +9,7 @@ All responses are JSON. Errors follow the shape:
 
 Auth:
 - **Web session**: `Authorization: Bearer <jwt>`
-- **CLI/API key**: `Authorization: Bearer cdnmcp_<key>`
+- **CLI/API key**: `Authorization: Bearer filemcp_<key>`
 
 ---
 
@@ -108,7 +108,7 @@ Create a new API key.
 {
   "id": "key_abc",
   "name": "my-cli-key",
-  "key": "cdnmcp_a1b2c3d4e5f6...",
+  "key": "filemcp_a1b2c3d4e5f6...",
   "lastFourChars": "x7z2"
 }
 ```
@@ -152,8 +152,8 @@ Upload a new asset or a new version of an existing asset.
   "assetId": "asset_xyz",
   "slug": "q3-review",
   "version": 1,
-  "url": "https://cdnmcp.com/u/dexter/q3-review",
-  "versionUrl": "https://cdnmcp.com/u/dexter/q3-review/v/1",
+  "url": "https://filemcp.com/u/dexter/q3-review",
+  "versionUrl": "https://filemcp.com/u/dexter/q3-review/v/1",
   "fileType": "HTML",
   "sizeBytes": 42000
 }
@@ -272,7 +272,7 @@ Get the raw content URL for a specific version. Returns a presigned S3 URL.
 **Response 200:**
 ```json
 {
-  "url": "https://r2.cdnmcp.com/assets/.../original.html?X-Amz-Signature=...",
+  "url": "https://r2.filemcp.com/assets/.../original.html?X-Amz-Signature=...",
   "expiresAt": "2026-04-21T12:00:00Z",
   "fileType": "HTML"
 }
