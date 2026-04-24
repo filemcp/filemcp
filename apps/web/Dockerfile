@@ -6,7 +6,7 @@ COPY packages/ ./packages/
 COPY apps/web/package.json ./apps/web/
 RUN pnpm install --frozen-lockfile
 COPY apps/web/ ./apps/web/
-ENV NUXT_API_URL=http://api:4000
+ENV NUXT_API_URL=http://api:4000/api
 RUN cd apps/web && pnpm run build
 
 FROM node:22-alpine
