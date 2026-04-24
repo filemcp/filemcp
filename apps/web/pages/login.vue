@@ -29,6 +29,11 @@ async function submit() {
 <template>
   <div class="min-h-screen bg-zinc-950 flex items-center justify-center px-4">
     <div class="w-full max-w-sm space-y-6">
+      <div class="text-center">
+        <NuxtLink to="/" class="inline-block text-2xl font-black tracking-tight select-none">
+          <span class="text-white">cdn</span><span class="bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">mcp</span>
+        </NuxtLink>
+      </div>
       <h1 class="text-2xl font-bold text-white text-center">Sign in</h1>
       <form class="space-y-4" @submit.prevent="submit">
         <input

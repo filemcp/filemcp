@@ -10,7 +10,9 @@ const { data, pending, refresh } = useApi<{ items: any[]; total: number }>(
 
 watch(() => auth.activeOrg?.slug, () => refresh())
 
-const visibilityOpen = ref<string | null>(null) // asset id with open dropdown
+const visibilityOpen = ref<string | null>(null)
+const shareOpen = ref<string | null>(null)
+const copiedId = ref<string | null>(null)
 
 const VISIBILITY_OPTIONS = [
   { value: 'PUBLIC',  label: 'Public',  desc: 'Anyone can view' },
@@ -32,9 +34,13 @@ async function setVisibility(assetId: string, visibility: string) {
   refresh()
 }
 
-async function copyUrl(username: string, slug: string) {
-  const url = `${window.location.origin}/u/${username}/${slug}`
+async function copyUrl(assetId: string, username: string, slug: string, viewOnly = false) {
+  const base = `${window.location.origin}/u/${username}/${slug}`
+  const url = viewOnly ? `${base}?mode=view` : base
   await navigator.clipboard.writeText(url)
+  shareOpen.value = null
+  copiedId.value = assetId
+  setTimeout(() => { copiedId.value = null }, 2000)
 }
 
 async function deleteAsset(id: string) {
@@ -43,9 +49,12 @@ async function deleteAsset(id: string) {
   refresh()
 }
 
-// Close dropdown on outside click
+// Close dropdowns on outside click
 if (import.meta.client) {
-  document.addEventListener('click', () => { visibilityOpen.value = null })
+  document.addEventListener('click', () => {
+    visibilityOpen.value = null
+    shareOpen.value = null
+  })
 }
 </script>
 
@@ -147,13 +156,53 @@ if (import.meta.client) {
               </div>
             </div>
 
-            <div class="flex gap-2">
-              <button
-                class="text-xs text-zinc-400 hover:text-white transition"
-                @click="copyUrl(asset.owner.username, asset.slug)"
-              >
-                Copy URL
-              </button>
+            <div class="flex gap-2 items-center">
+              <div class="relative" @click.stop>
+                <button
+                  class="flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg border transition"
+                  :class="copiedId === asset.id
+                    ? 'border-emerald-600 text-emerald-400 bg-emerald-950/40'
+                    : 'border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-white'"
+                  @click="shareOpen = shareOpen === asset.id ? null : asset.id"
+                >
+                  <svg v-if="copiedId !== asset.id" xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/>
+                  </svg>
+                  <svg v-else xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                  {{ copiedId === asset.id ? 'Copied!' : 'Share link' }}
+                </button>
+
+                <Transition
+                  enter-active-class="transition ease-out duration-100"
+                  enter-from-class="opacity-0 scale-95"
+                  enter-to-class="opacity-100 scale-100"
+                  leave-active-class="transition ease-in duration-75"
+                  leave-from-class="opacity-100 scale-100"
+                  leave-to-class="opacity-0 scale-95"
+                >
+                  <div
+                    v-if="shareOpen === asset.id"
+                    class="absolute left-0 bottom-full mb-1.5 w-48 bg-zinc-800 border border-zinc-700 rounded-xl shadow-xl shadow-black/40 z-50 overflow-hidden"
+                  >
+                    <button
+                      class="w-full text-left px-3 py-2.5 hover:bg-zinc-700 transition-colors"
+                      @click="copyUrl(asset.id, asset.owner.username, asset.slug, false)"
+                    >
+                      <p class="text-xs font-medium text-white">With comments</p>
+                      <p class="text-xs text-zinc-500">Full experience</p>
+                    </button>
+                    <button
+                      class="w-full text-left px-3 py-2.5 hover:bg-zinc-700 transition-colors border-t border-zinc-700"
+                      @click="copyUrl(asset.id, asset.owner.username, asset.slug, true)"
+                    >
+                      <p class="text-xs font-medium text-white">View only</p>
+                      <p class="text-xs text-zinc-500">Comments hidden</p>
+                    </button>
+                  </div>
+                </Transition>
+              </div>
               <button
                 class="text-xs text-red-500 hover:text-red-400 transition ml-auto"
                 @click="deleteAsset(asset.id)"

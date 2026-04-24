@@ -13,9 +13,24 @@ const emit = defineEmits<{
 
 const containerRef = ref<HTMLDivElement>()
 const iframeRef = ref<HTMLIFrameElement>()
+const blobSrc = ref('')
+
+onMounted(async () => {
+  const html = await fetch(props.contentUrl).then(r => r.text())
+  const listener = `<script>window.addEventListener('message',function(e){if(e.data==='print')window.print()})<\/script>`
+  const injected = html.includes('</body>')
+    ? html.replace('</body>', listener + '</body>')
+    : html + listener
+  const blob = new Blob([injected], { type: 'text/html' })
+  blobSrc.value = URL.createObjectURL(blob)
+})
+
+onUnmounted(() => {
+  if (blobSrc.value) URL.revokeObjectURL(blobSrc.value)
+})
 
 function print() {
-  iframeRef.value?.contentWindow?.print()
+  iframeRef.value?.contentWindow?.postMessage('print', '*')
 }
 
 defineExpose({ print })
@@ -38,13 +53,13 @@ function handleOverlayClick(e: MouseEvent) {
   >
     <iframe
       ref="iframeRef"
-      :src="contentUrl"
-      sandbox="allow-scripts"
+      :src="blobSrc || contentUrl"
+      sandbox="allow-scripts allow-modals"
       class="w-full h-full border-0 bg-white"
       title="Asset content"
     />
 
-    <!-- Comment pins overlay (pointer-events-none so iframe receives events normally, unless in comment mode) -->
+    <!-- Comment pins overlay -->
     <div
       class="absolute inset-0"
       :class="commentMode ? 'pointer-events-auto' : 'pointer-events-none'"
