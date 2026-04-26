@@ -55,26 +55,31 @@ async function submit() {
 <template>
   <div class="min-h-screen bg-zinc-950 flex items-center justify-center px-4">
     <div class="w-full max-w-sm space-y-6">
+      <div class="flex justify-center">
+        <NuxtLink to="/" class="inline-block select-none">
+          <img src="/logo.jpg" alt="FileMCP" class="h-8 w-auto" />
+        </NuxtLink>
+      </div>
       <h1 class="text-2xl font-bold text-white text-center">Create account</h1>
       <form class="space-y-4" @submit.prevent="submit">
         <input
           v-model="email"
           type="email"
           placeholder="Email"
-          class="w-full px-4 py-3 bg-zinc-900 text-white rounded-lg border border-zinc-800 focus:outline-none focus:border-zinc-600"
+          class="w-full px-4 py-3 bg-zinc-900 text-white rounded-lg border border-zinc-800 focus:outline-none focus:border-cyan-500 focus:shadow-[0_0_0_3px_rgba(34,211,238,0.14)]"
         />
         <input
           v-model="username"
           type="text"
           placeholder="Username"
-          class="w-full px-4 py-3 bg-zinc-900 text-white rounded-lg border border-zinc-800 focus:outline-none focus:border-zinc-600"
+          class="w-full px-4 py-3 bg-zinc-900 text-white rounded-lg border border-zinc-800 focus:outline-none focus:border-cyan-500 focus:shadow-[0_0_0_3px_rgba(34,211,238,0.14)]"
         />
         <div class="space-y-1">
           <input
             v-model="orgName"
             type="text"
             placeholder="Workspace name"
-            class="w-full px-4 py-3 bg-zinc-900 text-white rounded-lg border border-zinc-800 focus:outline-none focus:border-zinc-600"
+            class="w-full px-4 py-3 bg-zinc-900 text-white rounded-lg border border-zinc-800 focus:outline-none focus:border-cyan-500 focus:shadow-[0_0_0_3px_rgba(34,211,238,0.14)]"
             @input="orgNameEdited = true"
           />
           <p class="text-xs text-zinc-600 px-1">
@@ -86,13 +91,19 @@ async function submit() {
           v-model="password"
           type="password"
           placeholder="Password (8+ chars)"
-          class="w-full px-4 py-3 bg-zinc-900 text-white rounded-lg border border-zinc-800 focus:outline-none focus:border-zinc-600"
+          class="w-full px-4 py-3 bg-zinc-900 text-white rounded-lg border border-zinc-800 focus:outline-none focus:border-cyan-500 focus:shadow-[0_0_0_3px_rgba(34,211,238,0.14)]"
         />
         <p v-if="error" class="text-red-400 text-sm">{{ error }}</p>
+        <p class="text-xs text-zinc-500 text-center leading-relaxed px-2">
+          By creating an account, you agree to our
+          <NuxtLink to="/terms" class="text-zinc-300 hover:text-cyan-300 underline-offset-2 hover:underline transition">Terms of Use</NuxtLink>
+          and acknowledge our
+          <NuxtLink to="/privacy" class="text-zinc-300 hover:text-cyan-300 underline-offset-2 hover:underline transition">Privacy Policy</NuxtLink>.
+        </p>
         <button
           type="submit"
           :disabled="loading"
-          class="w-full py-3 bg-white text-zinc-950 rounded-lg font-semibold hover:bg-zinc-100 transition disabled:opacity-50"
+          class="w-full py-3 bg-white text-zinc-950 rounded-lg font-semibold hover:bg-zinc-100 hover:shadow-[0_0_30px_rgba(34,211,238,0.45)] transition disabled:opacity-50"
         >
           {{ loading ? 'Creating account…' : 'Create account' }}
         </button>

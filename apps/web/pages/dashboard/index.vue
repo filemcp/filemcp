@@ -20,7 +20,7 @@ const VISIBILITY_OPTIONS = [
 
 const VISIBILITY_STYLE: Record<string, string> = {
   PUBLIC:  'text-emerald-400',
-  PRIVATE: 'text-amber-400',
+  PRIVATE: 'text-violet-400',
 }
 
 async function setVisibility(assetId: string, visibility: string) {
@@ -63,7 +63,7 @@ if (import.meta.client) {
         <p class="text-zinc-400 text-sm">Create an API key, then upload your first file via curl or the MCP server.</p>
         <NuxtLink
           to="/dashboard/keys"
-          class="inline-block mt-2 px-4 py-2 bg-white text-zinc-950 rounded-lg text-sm font-semibold hover:bg-zinc-100 transition"
+          class="inline-block mt-2 px-4 py-2 bg-white text-zinc-950 rounded-lg text-sm font-semibold hover:bg-zinc-100 hover:shadow-[0_0_24px_rgba(34,211,238,0.4)] transition"
         >
           Create an API key
         </NuxtLink>
@@ -73,7 +73,7 @@ if (import.meta.client) {
         <div
           v-for="asset in data.items"
           :key="asset.id"
-          class="bg-zinc-900 rounded-xl overflow-hidden border border-zinc-800 hover:border-zinc-600 transition group"
+          class="bg-zinc-900 rounded-xl overflow-hidden border border-zinc-800 hover:border-cyan-500/30 transition group"
         >
           <NuxtLink :to="`/u/${asset.owner.org}/${asset.uuid}`" class="block">
             <div class="aspect-video bg-zinc-800 flex items-center justify-center">

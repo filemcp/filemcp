@@ -40,19 +40,19 @@ async function submit() {
           v-model="email"
           type="email"
           placeholder="Email"
-          class="w-full px-4 py-3 bg-zinc-900 text-white rounded-lg border border-zinc-800 focus:outline-none focus:border-zinc-600"
+          class="w-full px-4 py-3 bg-zinc-900 text-white rounded-lg border border-zinc-800 focus:outline-none focus:border-cyan-500 focus:shadow-[0_0_0_3px_rgba(34,211,238,0.14)]"
         />
         <input
           v-model="password"
           type="password"
           placeholder="Password"
-          class="w-full px-4 py-3 bg-zinc-900 text-white rounded-lg border border-zinc-800 focus:outline-none focus:border-zinc-600"
+          class="w-full px-4 py-3 bg-zinc-900 text-white rounded-lg border border-zinc-800 focus:outline-none focus:border-cyan-500 focus:shadow-[0_0_0_3px_rgba(34,211,238,0.14)]"
         />
         <p v-if="error" class="text-red-400 text-sm">{{ error }}</p>
         <button
           type="submit"
           :disabled="loading"
-          class="w-full py-3 bg-white text-zinc-950 rounded-lg font-semibold hover:bg-zinc-100 transition disabled:opacity-50"
+          class="w-full py-3 bg-white text-zinc-950 rounded-lg font-semibold hover:bg-zinc-100 hover:shadow-[0_0_30px_rgba(34,211,238,0.45)] transition disabled:opacity-50"
         >
           {{ loading ? 'Signing in…' : 'Sign in' }}
         </button>
