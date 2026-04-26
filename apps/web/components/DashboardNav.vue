@@ -34,8 +34,8 @@ function logout() {
 }
 
 const ROLE_COLOR: Record<string, string> = {
-  OWNER: 'text-amber-400',
-  WRITE: 'text-sky-400',
+  OWNER: 'text-cyan-400',
+  WRITE: 'text-violet-400',
   READ: 'text-zinc-400',
 }
 </script>
@@ -44,7 +44,7 @@ const ROLE_COLOR: Record<string, string> = {
   <nav class="border-b border-zinc-800 px-6 py-4 flex items-center justify-between">
     <div class="flex items-center gap-6">
       <NuxtLink to="/" class="select-none">
-        <img src="/logo.png" alt="filemcp" class="h-8 w-auto" />
+        <img src="/logo.jpg" alt="FileMCP" class="h-6 w-auto" />
       </NuxtLink>
       <div class="flex gap-4 text-sm">
         <NuxtLink to="/dashboard" class="text-zinc-400 hover:text-white transition-colors" active-class="!text-white">Assets</NuxtLink>
@@ -117,7 +117,7 @@ const ROLE_COLOR: Record<string, string> = {
         </Transition>
       </div>
 
-      <button class="text-zinc-500 hover:text-white transition-colors text-xs" @click="logout">
+      <button class="text-zinc-400 hover:text-white transition-colors text-xs" @click="logout">
         Log out
       </button>
     </div>

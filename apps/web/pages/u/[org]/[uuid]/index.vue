@@ -11,9 +11,9 @@ if (error.value) {
 }
 
 useSeoMeta({
-  title: () => `${data.value?.title ?? uuid} — filemcp`,
+  title: () => `${data.value?.title ?? uuid} — FileMCP`,
   ogTitle: () => data.value?.title ?? uuid,
-  description: () => `Shared by ${org} on filemcp`,
+  description: () => `Shared by ${org} on FileMCP`,
   ogImage: () => data.value?.currentVersion?.thumbnailUrl ?? undefined,
 })
 </script>

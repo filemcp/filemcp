@@ -12,7 +12,7 @@ if (error.value) {
 }
 
 useSeoMeta({
-  title: () => `${data.value?.title ?? uuid} v${version} — filemcp`,
+  title: () => `${data.value?.title ?? uuid} v${version} — FileMCP`,
 })
 </script>
 

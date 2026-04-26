@@ -68,7 +68,7 @@ function printAsset() {
     <!-- Top bar -->
     <header class="flex items-center gap-4 px-4 py-3 border-b border-zinc-800 shrink-0">
       <NuxtLink to="/" class="shrink-0">
-        <img src="/logo.png" alt="filemcp" class="h-6 w-auto" />
+        <img src="/logo.jpg" alt="FileMCP" class="h-6 w-auto" />
       </NuxtLink>
       <span class="text-zinc-600">/</span>
       <span class="text-zinc-400 text-sm">{{ asset.owner.org }}</span>
