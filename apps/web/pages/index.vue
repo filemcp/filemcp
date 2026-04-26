@@ -16,8 +16,8 @@ useSeoMeta({
 
     <div class="relative max-w-3xl w-full text-center space-y-10">
       <!-- Wordmark -->
-      <div class="text-3xl font-black tracking-tight select-none">
-        <span class="text-white">file</span><span class="bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">mcp</span>
+      <div class="flex justify-center select-none">
+        <img src="/logo.png" alt="filemcp" class="h-12 w-auto" />
       </div>
 
       <!-- Badge -->
