@@ -122,6 +122,7 @@ export class McpService {
 
   private async callTool(name: string, args: any, req: Request & { user: any }) {
     const { orgId, orgSlug, role } = await this.resolveOrgContext(req)
+    const appUrl = this.config.get('APP_URL', 'http://localhost:3000')
 
     if (name === 'upload_asset') {
       if (role === OrgRole.READ) {
@@ -143,7 +144,21 @@ export class McpService {
         content: [
           {
             type: 'text',
-            text: `Run this command to upload (max ${mcpMaxMb}MB):\n\n${cmd}\n\nThe JSON response will contain the asset \`url\` and \`versionUrl\`.`,
+            text: [
+              `Run this command to upload (max ${mcpMaxMb}MB):`,
+              '',
+              cmd,
+              '',
+              'The JSON response will contain these sharing links:',
+              '  url            — comment mode (default, viewers can leave inline notes)',
+              '  url + ?mode=view — view-only (comments hidden)',
+              '  versionUrl     — pinned to this exact version (permanent)',
+              '',
+              'Example: if url is https://filemcp.io/u/org/abc123',
+              '  Comment mode : https://filemcp.io/u/org/abc123',
+              '  View mode    : https://filemcp.io/u/org/abc123?mode=view',
+              '  Versioned    : https://filemcp.io/u/org/abc123/v/1 (from versionUrl)',
+            ].join('\n'),
           },
         ],
       }
@@ -158,23 +173,49 @@ export class McpService {
         return { content: [{ type: 'text', text: 'No assets found.' }] }
       }
 
-      const lines = result.items.map(
-        (a) => `• ${a.slug} — "${a.title}" (v${a.latestVersion}, updated ${new Date(a.updatedAt).toLocaleDateString()})`,
-      )
+      const lines = result.items.flatMap((a) => {
+        const base = `${appUrl}/u/${a.owner.org}/${a.uuid}`
+        return [
+          `• ${a.slug} — "${a.title}" (v${a.latestVersion}, updated ${new Date(a.updatedAt).toLocaleDateString()})`,
+          `  Comment : ${base}`,
+          `  View    : ${base}?mode=view`,
+          `  Pinned  : ${base}/v/${a.latestVersion}`,
+        ]
+      })
       lines.push(`\nShowing ${result.items.length} of ${result.total} total (page ${result.page}).`)
       return { content: [{ type: 'text', text: lines.join('\n') }] }
     }
 
     if (name === 'get_asset') {
       const { slug, version } = args
-      const { data, contentType } = await this.assets.streamContent(orgSlug, slug, version, req.user.id)
+
+      const assetRecord = await this.prisma.asset.findFirst({
+        where: { orgId, slug },
+        include: { versions: { orderBy: { number: 'desc' }, take: 1 } },
+      })
+      if (!assetRecord) throw new Error(`Asset not found: ${slug}`)
+
+      const { data } = await this.assets.streamContent(orgSlug, assetRecord.uuid, version, req.user.id)
       const text = data.toString('utf8')
+
+      const base = `${appUrl}/u/${orgSlug}/${assetRecord.uuid}`
+      const resolvedVersion = version ?? assetRecord.versions[0]?.number
 
       return {
         content: [
           {
             type: 'text',
-            text: `Content of "${slug}"${version ? ` (v${version})` : ' (latest)'}:\n\n${text}`,
+            text: [
+              `Content of "${slug}"${version ? ` (v${version})` : ' (latest)'}:`,
+              '',
+              text,
+              '',
+              '---',
+              'Sharing links:',
+              `  Comment : ${base}`,
+              `  View    : ${base}?mode=view`,
+              ...(resolvedVersion ? [`  Pinned  : ${base}/v/${resolvedVersion}`] : []),
+            ].join('\n'),
           },
         ],
       }
