@@ -82,6 +82,6 @@ async function copy() {
         {{ copied ? 'Copied!' : 'Copy' }}
       </button>
     </div>
-    <pre class="px-4 py-3 text-xs font-mono text-zinc-300 overflow-x-auto whitespace-pre-wrap break-all leading-relaxed text-left">{{ activeContent }}</pre>
+    <pre class="px-4 py-3 text-xs font-mono text-zinc-300 overflow-x-auto whitespace-pre leading-relaxed text-left">{{ activeContent }}</pre>
   </div>
 </template>

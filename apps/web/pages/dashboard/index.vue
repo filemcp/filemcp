@@ -1,5 +1,5 @@
 <script setup lang="ts">
-definePageMeta({ middleware: 'auth' })
+definePageMeta({ middleware: 'auth', layout: 'dashboard' })
 
 const auth = useAuthStore()
 const orgSlug = computed(() => auth.activeOrg?.slug ?? null)
@@ -47,36 +47,25 @@ if (import.meta.client) {
 </script>
 
 <template>
-  <div class="min-h-screen bg-zinc-950 text-white">
-    <DashboardNav />
-
-    <main class="max-w-5xl mx-auto px-6 py-8">
-      <div class="flex items-center justify-between mb-6">
+  <div class="max-w-7xl mx-auto px-6 py-8">
+    <div v-if="data?.items?.length" class="flex items-center justify-between mb-6">
         <h1 class="text-xl font-semibold">My Assets</h1>
-        <span class="text-zinc-400 text-sm">{{ data?.total ?? 0 }} total</span>
+        <span class="text-zinc-400 text-sm">{{ data.total }} total</span>
       </div>
 
       <div v-if="pending" class="text-zinc-400">Loading…</div>
 
-      <div v-else-if="!data?.items?.length" class="text-center py-24 space-y-3">
-        <p class="text-zinc-300 font-medium">No assets yet</p>
-        <p class="text-zinc-400 text-sm">Create an API key, then upload your first file via curl or the MCP server.</p>
-        <NuxtLink
-          to="/dashboard/keys"
-          class="inline-block mt-2 px-4 py-2 bg-white text-zinc-950 rounded-lg text-sm font-semibold hover:bg-zinc-100 hover:shadow-[0_0_24px_rgba(34,211,238,0.4)] transition"
-        >
-          Create an API key
-        </NuxtLink>
-      </div>
+      <DashboardConnectView v-else-if="!data?.items?.length" class="py-8" />
 
-      <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         <div
           v-for="asset in data.items"
           :key="asset.id"
-          class="bg-zinc-900 rounded-xl overflow-hidden border border-zinc-800 hover:border-cyan-500/30 transition group"
+          class="group relative p-[1px] rounded-xl bg-gradient-to-br from-cyan-500/50 via-zinc-700 to-violet-500/50 hover:from-cyan-500/70 hover:to-violet-500/70 transition"
         >
+        <div class="rounded-[11px] overflow-hidden bg-zinc-950/95 backdrop-blur-sm">
           <NuxtLink :to="`/u/${asset.owner.org}/${asset.uuid}`" class="block">
-            <div class="aspect-video bg-zinc-800 flex items-center justify-center">
+            <div class="aspect-video bg-zinc-900 flex items-center justify-center">
               <img
                 v-if="asset.thumbnailUrl"
                 :src="asset.thumbnailUrl"
@@ -95,7 +84,7 @@ if (import.meta.client) {
               >
                 {{ asset.title ?? asset.slug }}
               </NuxtLink>
-              <span class="text-xs text-zinc-600 shrink-0">v{{ asset.latestVersion }}</span>
+              <span class="text-xs text-zinc-500 shrink-0">v{{ asset.latestVersion }}</span>
             </div>
 
             <div class="flex items-center gap-3 text-xs text-zinc-400">
@@ -169,8 +158,8 @@ if (import.meta.client) {
             </div>
           </div>
         </div>
+        </div>
       </div>
-    </main>
 
     <ShareModal
       v-if="shareAsset"

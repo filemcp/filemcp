@@ -81,7 +81,7 @@ const steps = [
             </NuxtLink>
             <NuxtLink
               to="/login"
-              class="px-6 py-2.5 text-zinc-300 hover:text-white border border-zinc-800 hover:border-cyan-500/40 rounded-lg transition text-sm bg-zinc-900/30 backdrop-blur-sm"
+              class="px-6 py-2.5 text-zinc-300 hover:text-white border border-zinc-800 hover:border-cyan-500 hover:shadow-[0_0_0_3px_rgba(34,211,238,0.14)] rounded-lg transition text-sm bg-zinc-900/30 backdrop-blur-sm"
             >
               Sign in
             </NuxtLink>
@@ -138,7 +138,7 @@ const steps = [
           <div
             v-for="step in steps"
             :key="step.n"
-            class="group relative p-[1px] rounded-xl bg-gradient-to-br from-cyan-500/30 via-zinc-800 to-violet-500/30 hover:from-cyan-500/60 hover:to-violet-500/60 transition"
+            class="group relative p-[1px] rounded-xl bg-gradient-to-br from-cyan-500/50 via-zinc-700 to-violet-500/50 hover:from-cyan-500/60 hover:to-violet-500/60 transition"
           >
             <div class="h-full rounded-[11px] bg-zinc-950/95 backdrop-blur-sm p-6">
               <div class="text-xs font-mono text-cyan-400/80 mb-3 tracking-widest">{{ step.n }}</div>
@@ -177,7 +177,7 @@ const steps = [
           <!-- Hosted -->
           <NuxtLink
             to="/register"
-            class="group relative block p-[1px] rounded-xl bg-gradient-to-br from-cyan-500/40 via-zinc-800 to-cyan-500/20 hover:from-cyan-500/70 hover:to-cyan-500/40 hover:-translate-y-0.5 transition"
+            class="group relative block p-[1px] rounded-xl bg-gradient-to-br from-cyan-500/60 via-zinc-700 to-cyan-500/40 hover:from-cyan-500/80 hover:to-cyan-500/60 hover:-translate-y-0.5 transition"
           >
             <div class="h-full rounded-[11px] bg-zinc-950/95 backdrop-blur-sm p-7 flex flex-col gap-5">
               <div class="text-xs font-mono text-cyan-400/80 tracking-widest uppercase">Hosted</div>
@@ -196,7 +196,7 @@ const steps = [
             href="https://github.com/filemcp/filemcp"
             target="_blank"
             rel="noopener"
-            class="group relative block p-[1px] rounded-xl bg-gradient-to-br from-violet-500/30 via-zinc-800 to-violet-500/20 hover:from-violet-500/60 hover:to-violet-500/40 hover:-translate-y-0.5 transition"
+            class="group relative block p-[1px] rounded-xl bg-gradient-to-br from-violet-500/50 via-zinc-700 to-violet-500/30 hover:from-violet-500/70 hover:to-violet-500/50 hover:-translate-y-0.5 transition"
           >
             <div class="h-full rounded-[11px] bg-zinc-950/95 backdrop-blur-sm p-7 flex flex-col gap-5">
               <div class="text-xs font-mono text-violet-300/80 tracking-widest uppercase">Self-host</div>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-definePageMeta({ middleware: 'auth' })
+definePageMeta({ middleware: 'auth', layout: 'dashboard' })
 
 const auth = useAuthStore()
 const orgSlug = computed(() => auth.activeOrg?.slug ?? null)
@@ -72,10 +72,7 @@ const ROLE_LABELS: Record<string, string> = { OWNER: 'Owner', WRITE: 'Write', RE
 </script>
 
 <template>
-  <div class="min-h-screen bg-zinc-950 text-white">
-    <DashboardNav />
-
-    <main class="max-w-2xl mx-auto px-6 py-8 space-y-8">
+  <div class="max-w-2xl mx-auto px-6 py-8 space-y-8">
       <div class="flex items-center justify-between">
         <h1 class="text-xl font-semibold">Members</h1>
         <span class="text-zinc-500 text-sm font-mono">{{ orgSlug }}</span>
@@ -90,7 +87,7 @@ const ROLE_LABELS: Record<string, string> = { OWNER: 'Owner', WRITE: 'Write', RE
         <div class="h-1.5 bg-zinc-800 rounded-full overflow-hidden">
           <div
             class="h-full rounded-full transition-all"
-            :class="org.assetCount >= org.assetLimit ? 'bg-red-500' : 'bg-amber-500'"
+            :class="org.assetCount >= org.assetLimit ? 'bg-red-500' : 'bg-cyan-500'"
             :style="{ width: `${Math.min((org.assetCount / org.assetLimit) * 100, 100)}%` }"
           />
         </div>
@@ -164,7 +161,6 @@ const ROLE_LABELS: Record<string, string> = { OWNER: 'Owner', WRITE: 'Write', RE
             <span v-else-if="member.user.id === currentUserId" class="text-xs text-zinc-600">you</span>
           </div>
         </div>
-      </div>
-    </main>
+    </div>
   </div>
 </template>

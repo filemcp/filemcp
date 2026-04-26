@@ -5,15 +5,15 @@ const route = useRoute()
 // opaque + bordered on inner marketing pages.
 const isHome = computed(() => route.path === '/')
 
-const productLinks = [
+const accountLinks = [
   { label: 'Get started', to: '/register' },
   { label: 'Sign in', to: '/login' },
 ]
 
 const communityLinks = [
-  { label: 'GitHub', href: 'https://github.com/filemcp/filemcp', external: true },
   // TODO(ara): replace with real Discord invite URL
-  { label: 'Discord', href: 'https://discord.gg/filemcp', external: true },
+  { label: 'Discord', href: 'https://discord.gg/filemcp' },
+  { label: 'GitHub', href: 'https://github.com/filemcp/filemcp' },
 ]
 
 const legalLinks = [
@@ -45,7 +45,7 @@ const year = new Date().getFullYear()
             href="https://github.com/filemcp/filemcp"
             target="_blank"
             rel="noopener"
-            class="p-2 text-zinc-400 hover:text-white transition rounded-md hover:bg-zinc-900"
+            class="hidden sm:inline-flex p-2 text-zinc-400 hover:text-white transition rounded-md hover:bg-zinc-900"
             aria-label="GitHub"
           >
             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
@@ -56,7 +56,7 @@ const year = new Date().getFullYear()
             href="https://discord.gg/filemcp"
             target="_blank"
             rel="noopener"
-            class="p-2 text-zinc-400 hover:text-white transition rounded-md hover:bg-zinc-900"
+            class="hidden sm:inline-flex p-2 text-zinc-400 hover:text-white transition rounded-md hover:bg-zinc-900"
             aria-label="Discord"
           >
             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
@@ -86,9 +86,9 @@ const year = new Date().getFullYear()
     <!-- ===== Footer ===== -->
     <footer class="border-t border-zinc-900 mt-auto">
       <div class="max-w-7xl mx-auto px-4 py-12 sm:py-16">
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
+        <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-10">
           <!-- Brand -->
-          <div class="lg:col-span-2 space-y-4">
+          <div class="col-span-2 space-y-4">
             <NuxtLink to="/" class="inline-flex">
               <img src="/logo.jpg" alt="FileMCP" class="h-8 w-auto mix-blend-screen" />
             </NuxtLink>
@@ -97,15 +97,22 @@ const year = new Date().getFullYear()
             </p>
           </div>
 
-          <!-- Product -->
+          <!-- Account -->
           <div class="space-y-3">
-            <h3 class="text-zinc-300 text-xs uppercase tracking-[0.18em] font-medium">Product</h3>
+            <h3 class="text-zinc-300 text-xs uppercase tracking-[0.18em] font-medium">Account</h3>
             <ul class="space-y-2">
-              <li v-for="l in productLinks" :key="l.to">
+              <li v-for="l in accountLinks" :key="l.to">
                 <NuxtLink :to="l.to" class="text-zinc-400 hover:text-zinc-200 text-sm transition">
                   {{ l.label }}
                 </NuxtLink>
               </li>
+            </ul>
+          </div>
+
+          <!-- Community -->
+          <div class="space-y-3">
+            <h3 class="text-zinc-300 text-xs uppercase tracking-[0.18em] font-medium">Community</h3>
+            <ul class="space-y-2">
               <li v-for="l in communityLinks" :key="l.href">
                 <a :href="l.href" target="_blank" rel="noopener" class="text-zinc-400 hover:text-zinc-200 text-sm transition">
                   {{ l.label }}

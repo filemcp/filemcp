@@ -1,5 +1,5 @@
 <script setup lang="ts">
-definePageMeta({ middleware: 'auth' })
+definePageMeta({ middleware: 'auth', layout: 'dashboard' })
 
 const auth = useAuthStore()
 const orgSlug = computed(() => auth.activeOrg?.slug ?? null)
@@ -38,10 +38,7 @@ function copyKey() {
 </script>
 
 <template>
-  <div class="min-h-screen bg-zinc-950 text-white">
-    <DashboardNav />
-
-    <main class="max-w-2xl mx-auto px-6 py-8 space-y-8">
+  <div class="max-w-2xl mx-auto px-6 py-8 space-y-8">
       <div v-if="newKey" class="border border-emerald-400/80 rounded-xl overflow-hidden space-y-0 shadow-[0_0_30px_rgba(16,185,129,0.18)]">
         <div class="bg-zinc-900 px-4 pt-4 pb-3 space-y-2">
           <p class="text-emerald-300 text-sm font-medium">Key created — copy it now, it won't be shown again.</p>
@@ -103,7 +100,6 @@ function copyKey() {
             <button class="text-red-500 hover:text-red-400 transition" @click="revokeKey(key.id)">Revoke</button>
           </div>
         </div>
-      </div>
-    </main>
+    </div>
   </div>
 </template>
