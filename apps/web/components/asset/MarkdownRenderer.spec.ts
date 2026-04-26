@@ -15,8 +15,8 @@ async function mountMarkdown(commentMode = false, comments: any[] = []) {
   const wrapper = mount(
     defineComponent({
       components: { MarkdownRenderer },
-      template: '<Suspense><MarkdownRenderer :content-url="url" :comment-mode="mode" :comments="c" /></Suspense>',
-      setup() { return { url: 'http://cdn/file.md', mode: commentMode, c: comments } },
+      template: '<Suspense><MarkdownRenderer :content-url="url" :comment-mode="mode" :comments="c" :current-version-id="vid" /></Suspense>',
+      setup() { return { url: 'http://cdn/file.md', mode: commentMode, c: comments, vid: 'version-1' } },
     }),
     { global: { stubs: { CommentPin: true } } },
   )

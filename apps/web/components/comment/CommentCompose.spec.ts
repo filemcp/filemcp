@@ -4,7 +4,7 @@ import { mount, flushPromises } from '@vue/test-utils'
 import CommentCompose from './CommentCompose.vue'
 
 const defaultAnchor = { xPct: 0.5, yPct: 0.3, selectorHint: 'div>p' }
-const defaultProps = { anchor: defaultAnchor, assetId: 'asset-1' }
+const defaultProps = { anchor: defaultAnchor, assetId: 'asset-1', versionId: 'version-1' }
 
 function mountCompose(props = defaultProps) {
   return mount(CommentCompose, {
@@ -70,6 +70,7 @@ describe('CommentCompose', () => {
       const payload = JSON.parse((opts as any).body)
       expect(path).toBe('/assets/asset-1/comments')
       expect(payload.body).toBe('Nice work')
+      expect(payload.versionId).toBe('version-1')
       expect(payload).not.toHaveProperty('anonName')
     })
 

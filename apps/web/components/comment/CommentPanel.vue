@@ -5,6 +5,8 @@ const props = defineProps<{
   comments: Comment[]
   assetId: string
   isOwner: boolean
+  currentVersionId: string
+  currentVersionNumber: number
 }>()
 
 const emit = defineEmits<{ refresh: [] }>()
@@ -60,6 +62,7 @@ const resolvedCount = computed(() => props.comments.filter(c => c.resolved).leng
         :is-owner="isOwner"
         :active="commentStore.activeCommentId === comment.id"
         :asset-id="assetId"
+        :on-other-version="comment.versionId !== currentVersionId"
         @click="commentStore.setActiveComment(comment.id)"
         @resolve="toggleResolve(comment)"
         @delete="deleteComment(comment.id)"

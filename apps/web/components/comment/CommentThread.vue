@@ -7,6 +7,7 @@ const props = defineProps<{
   isOwner: boolean
   active: boolean
   assetId: string
+  onOtherVersion?: boolean
 }>()
 
 
@@ -52,6 +53,16 @@ async function submitReply(commentId: string) {
           <span v-if="!comment.author" class="text-zinc-600">(guest)</span>
           <span class="text-zinc-600">·</span>
           <span>{{ new Date(comment.createdAt).toLocaleDateString() }}</span>
+          <span
+            v-if="comment.versionNumber != null"
+            :class="[
+              'px-1.5 py-0.5 rounded text-[10px] font-mono leading-none',
+              onOtherVersion
+                ? 'bg-zinc-800 text-zinc-500'
+                : 'bg-zinc-700 text-zinc-300',
+            ]"
+            :title="onOtherVersion ? `Made on v${comment.versionNumber} — switch versions to see the pin in context` : `Made on v${comment.versionNumber}`"
+          >v{{ comment.versionNumber }}</span>
           <span v-if="comment.resolved" class="ml-auto text-emerald-500">Resolved</span>
         </div>
         <p class="text-sm text-zinc-200 leading-relaxed">{{ comment.body }}</p>

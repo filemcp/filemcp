@@ -190,9 +190,11 @@ Privacy is per-asset (not per-version). All versions of an asset share the same 
 
 An MCP server so Claude Code and other MCP-compatible clients can upload assets without leaving the AI conversation. Mounted at `POST /api/mcp`, auth via API key.
 
-Tools: `upload_asset`, `list_assets`, `get_asset`
+Tools: `upload_asset`, `list_assets`, `get_asset`, `read_asset_comments`
 
 `upload_asset` returns a `curl` command for the AI to run — the AI executes it with Bash and gets back the asset URL inline.
+
+`read_asset_comments` closes the loop: after viewers leave inline feedback in the browser, the agent can pull the threaded comments back into the conversation and revise before publishing a new version at the same URL.
 
 ---
 

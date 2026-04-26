@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config'
 import type { Request, Response } from 'express'
 import { OrgRole } from '@prisma/client'
 import { AssetsService } from '../assets/assets.service'
+import { CommentsService } from '../comments/comments.service'
 import { PrismaService } from '../../prisma/prisma.service'
 
 const TOOLS = [
@@ -50,6 +51,27 @@ const TOOLS = [
       required: ['slug'],
     },
   },
+  {
+    name: 'read_asset_comments',
+    description:
+      'Read inline feedback left on an asset by viewers. Returns threaded comments with author, date, version, position/line anchor, resolved status, and replies. Use this to incorporate reviewer feedback before publishing a new version.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        slug: { type: 'string', description: 'Asset slug' },
+        unresolved_only: {
+          type: 'boolean',
+          description: 'If true, only return unresolved comments (default: false).',
+        },
+        since_version: {
+          type: 'number',
+          description:
+            'Only return comments made on this version number or later. Useful after publishing a new version to see what feedback came in on it.',
+        },
+      },
+      required: ['slug'],
+    },
+  },
 ]
 
 const MIME_TYPES: Record<string, string> = {
@@ -69,6 +91,7 @@ const MIME_TYPES: Record<string, string> = {
 export class McpService {
   constructor(
     private assets: AssetsService,
+    private comments: CommentsService,
     private prisma: PrismaService,
     private config: ConfigService,
   ) {}
@@ -180,7 +203,101 @@ export class McpService {
       }
     }
 
+    if (name === 'read_asset_comments') {
+      const { slug, unresolved_only, since_version } = args
+      const asset = await this.prisma.asset.findUnique({
+        where: { orgId_slug: { orgId, slug } },
+      })
+      if (!asset) {
+        return { content: [{ type: 'text', text: `No asset found with slug "${slug}".` }] }
+      }
+
+      const comments = await this.comments.list(
+        asset.id,
+        unresolved_only ? false : undefined,
+        req.user.id,
+        { sinceVersion: typeof since_version === 'number' ? since_version : undefined },
+      )
+
+      if (comments.length === 0) {
+        const filters: string[] = []
+        if (unresolved_only) filters.push('unresolved')
+        if (typeof since_version === 'number') filters.push(`since v${since_version}`)
+        const filterNote = filters.length ? ` (${filters.join(', ')})` : ''
+        return {
+          content: [
+            { type: 'text', text: `No comments on "${asset.title}" (slug: ${slug})${filterNote}.` },
+          ],
+        }
+      }
+
+      return {
+        content: [{ type: 'text', text: this.formatComments(asset.title, slug, comments) }],
+      }
+    }
+
     throw new Error(`Unknown tool: ${name}`)
+  }
+
+  private formatComments(title: string, slug: string, comments: any[]): string {
+    const total = comments.length
+    const unresolved = comments.filter((c) => !c.resolved).length
+    const resolved = total - unresolved
+
+    const out: string[] = []
+    out.push(`${total} comment${total === 1 ? '' : 's'} on "${title}" (slug: ${slug}):`)
+    out.push('')
+    out.push('────────')
+
+    comments.forEach((c, i) => {
+      const author = this.formatAuthor(c)
+      const date = new Date(c.createdAt).toISOString().slice(0, 10)
+      const status = c.resolved ? 'resolved' : 'UNRESOLVED'
+      const anchor = this.formatAnchor(c)
+      const versionTag = c.versionNumber != null ? `on v${c.versionNumber}` : null
+      const meta = [author, date, status, versionTag, anchor].filter(Boolean).join(' · ')
+      out.push(`[${i + 1}] ${meta}`)
+      out.push(this.indent(c.body, 4))
+
+      for (const reply of c.replies ?? []) {
+        const ra = this.formatAuthor(reply)
+        const rd = new Date(reply.createdAt).toISOString().slice(0, 10)
+        out.push('')
+        out.push(`    ↳ ${ra} · ${rd}`)
+        out.push(this.indent(reply.body, 6))
+      }
+      out.push('')
+    })
+
+    out.push('────────')
+    out.push(`${unresolved} unresolved · ${resolved} resolved`)
+    return out.join('\n')
+  }
+
+  private formatAuthor(c: any): string {
+    if (c.author?.username) return `@${c.author.username}`
+    return `${c.anonName ?? 'anonymous'} (anonymous)`
+  }
+
+  private formatAnchor(c: any): string | null {
+    if (c.anchorType === 'POSITION' && c.xPct != null && c.yPct != null) {
+      // xPct/yPct are stored as 0..1 fractions
+      return `pos ${Math.round(c.xPct * 100)}%×${Math.round(c.yPct * 100)}%`
+    }
+    if (c.anchorType === 'LINE_RANGE' && c.lineStart != null) {
+      return c.lineEnd && c.lineEnd !== c.lineStart
+        ? `lines ${c.lineStart}-${c.lineEnd}`
+        : `line ${c.lineStart}`
+    }
+    return null
+  }
+
+  private indent(text: string, spaces: number): string {
+    const pad = ' '.repeat(spaces)
+    return text
+      .split('\n')
+      .map((l) => pad + l)
+      .join('\n')
   }
 
   private async resolveOrgContext(req: Request & { user: any }) {

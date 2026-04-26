@@ -11,6 +11,7 @@ const props = defineProps<{
     owner: { org: string }
     latestVersion: number
     currentVersion: {
+      id: string
       number: number
       fileType: string
       contentUrl: string
@@ -142,6 +143,7 @@ function printAsset() {
           :content-url="asset.currentVersion.contentUrl"
           :comment-mode="commentStore.commentMode"
           :comments="commentStore.comments"
+          :current-version-id="asset.currentVersion.id"
           @click="handleViewerClick"
         />
         <AssetMarkdownRenderer
@@ -149,6 +151,7 @@ function printAsset() {
           :content-url="asset.currentVersion.contentUrl"
           :comment-mode="commentStore.commentMode"
           :comments="commentStore.comments"
+          :current-version-id="asset.currentVersion.id"
           @click="handleViewerClick"
         />
         <AssetJsonRenderer
@@ -166,6 +169,7 @@ function printAsset() {
           v-if="!viewMode && commentStore.pendingAnchor"
           :anchor="commentStore.pendingAnchor"
           :asset-id="asset.assetId"
+          :version-id="asset.currentVersion.id"
           @submitted="() => { commentStore.setPendingAnchor(null); refreshComments() }"
           @cancel="commentStore.setPendingAnchor(null)"
         />
@@ -177,6 +181,8 @@ function printAsset() {
         :comments="commentStore.comments"
         :asset-id="asset.assetId"
         :is-owner="asset.isOwner"
+        :current-version-id="asset.currentVersion.id"
+        :current-version-number="asset.currentVersion.number"
         @refresh="refreshComments"
       />
     </div>

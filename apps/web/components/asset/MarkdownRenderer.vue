@@ -5,7 +5,14 @@ const props = defineProps<{
   contentUrl: string
   commentMode: boolean
   comments: Comment[]
+  currentVersionId: string
 }>()
+
+const versionPins = computed(() =>
+  props.comments.filter(
+    (c) => c.versionId === props.currentVersionId && c.anchorType === 'POSITION' && c.xPct !== null,
+  ),
+)
 
 const emit = defineEmits<{
   click: [{ xPct: number; yPct: number; selectorHint: string }]
@@ -49,7 +56,7 @@ function handleClick(e: MouseEvent) {
     <!-- Comment pins overlay -->
     <div class="absolute inset-0 pointer-events-none">
       <CommentPin
-        v-for="(comment, i) in comments.filter(c => c.anchorType === 'POSITION' && c.xPct !== null)"
+        v-for="(comment, i) in versionPins"
         :key="comment.id"
         :index="i + 1"
         :x-pct="comment.xPct!"

@@ -5,6 +5,11 @@ export class CreateCommentDto {
   @IsString()
   body: string
 
+  // Required for top-level comments. Replies inherit versionId from parent — omit when parentId is set.
+  @IsOptional()
+  @IsString()
+  versionId?: string
+
   @IsOptional()
   @IsEnum(AnchorType)
   anchorType?: AnchorType
