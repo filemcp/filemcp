@@ -11,6 +11,7 @@ const props = defineProps<{
     owner: { org: string }
     latestVersion: number
     currentVersion: {
+      id: string
       number: number
       fileType: string
       contentUrl: string
@@ -166,6 +167,7 @@ function printAsset() {
           v-if="!viewMode && commentStore.pendingAnchor"
           :anchor="commentStore.pendingAnchor"
           :asset-id="asset.assetId"
+          :version-id="asset.currentVersion.id"
           @submitted="() => { commentStore.setPendingAnchor(null); refreshComments() }"
           @cancel="commentStore.setPendingAnchor(null)"
         />

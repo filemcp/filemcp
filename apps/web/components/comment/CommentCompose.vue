@@ -2,6 +2,7 @@
 const props = defineProps<{
   anchor: { xPct: number; yPct: number; viewXPct: number; viewYPct: number; selectorHint: string }
   assetId: string
+  versionId: string
 }>()
 
 const emit = defineEmits<{
@@ -31,6 +32,7 @@ async function submit() {
   try {
     const payload: any = {
       body: body.value,
+      versionId: props.versionId,
       anchorType: 'POSITION',
       xPct: props.anchor.xPct,
       yPct: props.anchor.yPct,
