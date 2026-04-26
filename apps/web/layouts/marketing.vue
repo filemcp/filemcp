@@ -1,9 +1,18 @@
 <script setup lang="ts">
 const route = useRoute()
 
-// Header is transparent on the home page (lets the hero glow show through),
-// opaque + bordered on inner marketing pages.
+// Header is transparent at the top of the home page (lets the hero glow
+// shine through cleanly), then becomes a blurred backdrop once you scroll.
+// Inner marketing pages always show the backdrop.
 const isHome = computed(() => route.path === '/')
+const scrolled = ref(false)
+
+onMounted(() => {
+  const onScroll = () => { scrolled.value = window.scrollY > 8 }
+  onScroll()
+  window.addEventListener('scroll', onScroll, { passive: true })
+  onUnmounted(() => window.removeEventListener('scroll', onScroll))
+})
 
 const accountLinks = [
   { label: 'Get started', to: '/register' },
@@ -25,19 +34,19 @@ const year = new Date().getFullYear()
 </script>
 
 <template>
-  <div class="min-h-screen bg-zinc-950 text-white flex flex-col">
+  <div class="min-h-screen bg-zinc-950 text-white flex flex-col overflow-x-clip">
     <!-- ===== Header ===== -->
     <header
       :class="[
-        'sticky top-0 z-40 transition-colors',
-        isHome
-          ? 'bg-zinc-950/40 backdrop-blur-md'
-          : 'bg-zinc-950/85 backdrop-blur-md border-b border-zinc-900',
+        'sticky top-0 z-40 transition-all duration-300 border-b',
+        isHome && !scrolled
+          ? 'bg-transparent border-transparent'
+          : 'bg-zinc-950/85 backdrop-blur-md border-zinc-900',
       ]"
     >
       <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
         <NuxtLink to="/" class="flex items-center select-none">
-          <img src="/logo.jpg" alt="FileMCP" class="h-8 w-auto mix-blend-screen" />
+          <img src="/logo.png" alt="FileMCP" class="h-8 w-auto mix-blend-screen" />
         </NuxtLink>
 
         <nav class="flex items-center gap-1 sm:gap-2">
@@ -90,7 +99,7 @@ const year = new Date().getFullYear()
           <!-- Brand -->
           <div class="col-span-2 space-y-4">
             <NuxtLink to="/" class="inline-flex">
-              <img src="/logo.jpg" alt="FileMCP" class="h-8 w-auto mix-blend-screen" />
+              <img src="/logo.png" alt="FileMCP" class="h-8 w-auto mix-blend-screen" />
             </NuxtLink>
             <p class="text-zinc-400 text-sm leading-relaxed max-w-xs">
               The publishing layer for AI-generated work.

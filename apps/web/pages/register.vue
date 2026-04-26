@@ -57,7 +57,7 @@ async function submit() {
     <div class="w-full max-w-sm space-y-6">
       <div class="flex justify-center">
         <NuxtLink to="/" class="inline-block select-none">
-          <img src="/logo.jpg" alt="FileMCP" class="h-8 w-auto" />
+          <img src="/logo.png" alt="FileMCP" class="h-8 w-auto" />
         </NuxtLink>
       </div>
       <h1 class="text-2xl font-bold text-white text-center">Create account</h1>

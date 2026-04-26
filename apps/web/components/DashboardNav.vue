@@ -59,7 +59,7 @@ const TABS = [
       <!-- Left: logo + desktop tabs -->
       <div class="flex items-center gap-6 min-w-0">
         <NuxtLink to="/" class="select-none shrink-0">
-          <img src="/logo.jpg" alt="FileMCP" class="h-6 w-auto" />
+          <img src="/logo.png" alt="FileMCP" class="h-6 w-auto" />
         </NuxtLink>
         <div class="hidden md:flex gap-1 text-sm">
           <NuxtLink

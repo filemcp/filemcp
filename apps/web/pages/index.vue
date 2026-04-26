@@ -35,15 +35,21 @@ const steps = [
 <template>
   <div>
     <!-- ===== Hero ===== -->
-    <section class="relative px-4 pt-16 pb-20 sm:pt-20 sm:pb-28 overflow-hidden">
-      <!-- Cyan glow blob, top-left -->
-      <div class="pointer-events-none absolute -top-40 -left-32 w-[640px] h-[640px] rounded-full bg-cyan-500/[0.18] blur-[140px]" />
-      <!-- Violet glow blob, top-right -->
-      <div class="pointer-events-none absolute -top-20 -right-40 w-[560px] h-[560px] rounded-full bg-violet-500/[0.18] blur-[140px]" />
-      <!-- Faint center wash -->
-      <div class="pointer-events-none absolute inset-0 flex items-center justify-center">
-        <div class="w-[800px] h-[500px] rounded-full bg-white/[0.02] blur-3xl" />
+    <!-- clip-path lets blobs extend up into the transparent nav, but clips them at section sides + bottom -->
+    <section
+      class="relative px-4 pt-16 pb-20 sm:pt-20 sm:pb-28"
+      style="clip-path: inset(-200px 0 0 0); -webkit-clip-path: inset(-200px 0 0 0);"
+    >
+      <!-- Cyan glow blob — bleeds up into the transparent nav but its hot center sits below it -->
+      <div class="pointer-events-none absolute -top-16 -left-32 w-[480px] h-[480px] lg:w-[900px] lg:h-[900px] rounded-full bg-cyan-500/[0.09] lg:bg-cyan-500/[0.16] blur-[140px]" />
+      <!-- Violet glow blob -->
+      <div class="pointer-events-none absolute top-4 -right-40 w-[440px] h-[440px] lg:w-[800px] lg:h-[800px] rounded-full bg-violet-500/[0.09] lg:bg-violet-500/[0.16] blur-[140px]" />
+      <!-- Center bridge — fills the dark gap between cyan/violet on wide + ultrawide displays -->
+      <div class="pointer-events-none absolute inset-x-0 top-0 flex justify-center">
+        <div class="w-[600px] h-[400px] lg:w-[1000px] lg:h-[500px] xl:w-[1400px] xl:h-[600px] 2xl:w-[1800px] rounded-full bg-violet-500/[0.04] lg:bg-violet-500/[0.07] xl:bg-violet-500/[0.10] blur-[140px] -mt-16" />
       </div>
+      <!-- Bottom fade — covers the blobs with page bg color so they fade smoothly into the next section -->
+      <div class="pointer-events-none absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-zinc-950 to-transparent" />
       <!-- Dotted grid background -->
       <div
         class="pointer-events-none absolute inset-0 opacity-[0.4]"
@@ -55,7 +61,7 @@ const steps = [
         <div class="space-y-7 text-center lg:text-left">
           <!-- Eyebrow -->
           <div class="flex justify-center lg:justify-start">
-            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-cyan-500/20 bg-cyan-500/[0.04] text-cyan-300/80 text-[11px] font-medium tracking-[0.18em] uppercase backdrop-blur-sm">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-cyan-500/20 bg-cyan-500/[0.04] text-cyan-300/80 text-[9px] sm:text-[11px] font-medium tracking-[0.18em] uppercase backdrop-blur-sm">
               <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
               The publishing layer for AI-generated work
             </div>
@@ -75,13 +81,13 @@ const steps = [
           <div class="flex gap-3 justify-center lg:justify-start pt-1">
             <NuxtLink
               to="/register"
-              class="px-6 py-2.5 bg-white text-zinc-950 rounded-lg font-semibold transition text-sm hover:shadow-[0_0_30px_rgba(34,211,238,0.45)]"
+              class="px-6 py-2.5 bg-white text-zinc-950 rounded-lg font-semibold transition text-sm shadow-lg shadow-black/30 hover:shadow-[0_0_30px_rgba(34,211,238,0.45)]"
             >
               Get started free
             </NuxtLink>
             <NuxtLink
               to="/login"
-              class="px-6 py-2.5 text-zinc-300 hover:text-white border border-zinc-800 hover:border-cyan-500 hover:shadow-[0_0_0_3px_rgba(34,211,238,0.14)] rounded-lg transition text-sm bg-zinc-900/30 backdrop-blur-sm"
+              class="px-6 py-2.5 text-zinc-200 hover:text-white border border-zinc-700 hover:border-cyan-500 hover:shadow-[0_0_0_3px_rgba(34,211,238,0.14)] rounded-lg transition text-sm bg-zinc-900/80 backdrop-blur-sm"
             >
               Sign in
             </NuxtLink>

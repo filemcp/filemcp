@@ -3,7 +3,7 @@ const year = new Date().getFullYear()
 </script>
 
 <template>
-  <div class="min-h-screen bg-zinc-950 text-white flex flex-col">
+  <div class="min-h-screen bg-zinc-950 text-white flex flex-col overflow-x-clip">
     <DashboardNav />
 
     <main class="flex-1">
