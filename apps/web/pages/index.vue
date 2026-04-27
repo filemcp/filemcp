@@ -193,7 +193,7 @@ const steps = [
           <!-- Hosted -->
           <NuxtLink
             to="/register"
-            class="group relative block p-[1px] rounded-xl bg-gradient-to-br from-cyan-500/60 via-zinc-700 to-cyan-500/40 hover:from-cyan-500/80 hover:to-cyan-500/60 hover:-translate-y-0.5 transition"
+            class="group relative block p-[1px] rounded-xl bg-gradient-to-br from-cyan-500/60 via-zinc-700 to-cyan-500/40 hover:from-cyan-500/80 hover:to-cyan-500/60 transition"
           >
             <div class="h-full rounded-[11px] bg-zinc-950/95 backdrop-blur-sm p-7 flex flex-col gap-5">
               <div class="text-xs font-mono text-cyan-400/80 tracking-widest uppercase">Hosted</div>
@@ -212,7 +212,7 @@ const steps = [
             href="https://github.com/filemcp/filemcp"
             target="_blank"
             rel="noopener"
-            class="group relative block p-[1px] rounded-xl bg-gradient-to-br from-violet-500/50 via-zinc-700 to-violet-500/30 hover:from-violet-500/70 hover:to-violet-500/50 hover:-translate-y-0.5 transition"
+            class="group relative block p-[1px] rounded-xl bg-gradient-to-br from-violet-500/50 via-zinc-700 to-violet-500/30 hover:from-violet-500/70 hover:to-violet-500/50 transition"
           >
             <div class="h-full rounded-[11px] bg-zinc-950/95 backdrop-blur-sm p-7 flex flex-col gap-5">
               <div class="text-xs font-mono text-violet-300/80 tracking-widest uppercase">Self-host</div>
