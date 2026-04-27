@@ -1,9 +1,22 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'marketing' })
 
+const description = 'How FileMCP collects, uses, and protects your data.'
+const config = useRuntimeConfig()
+const ogImageUrl = `${config.public.appUrl}/og.jpg`
+
 useSeoMeta({
   title: 'Privacy Policy — FileMCP',
-  description: 'How FileMCP collects, uses, and protects your data.',
+  description,
+  ogTitle: 'Privacy Policy — FileMCP',
+  ogDescription: description,
+  ogImage: ogImageUrl,
+  ogImageType: 'image/jpeg',
+  ogImageWidth: 1600,
+  ogImageHeight: 840,
+  twitterTitle: 'Privacy Policy — FileMCP',
+  twitterDescription: description,
+  twitterImage: ogImageUrl,
 })
 
 const lastUpdated = '2026-04-26'

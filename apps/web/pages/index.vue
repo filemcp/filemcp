@@ -1,11 +1,25 @@
 <script setup lang="ts">
 definePageMeta({ middleware: 'guest', layout: 'marketing' })
 
+const config = useRuntimeConfig()
+const ogImageUrl = `${config.public.appUrl}/og.jpg`
+const description =
+  'Publish AI-generated HTML, Markdown, and JSON to a shareable link. Inline comments and version history built in. Your agent ships, your team comments, your agent revises.'
+
 useSeoMeta({
   title: 'FileMCP — AI-native publishing for generated work',
-  description:
-    'Publish AI-generated HTML, Markdown, and JSON to a shareable link. Inline comments and version history built in. Your agent ships, your team comments, your agent revises.',
-  ogImage: '/icon.png',
+  description,
+  ogTitle: 'FileMCP — Turn AI-generated work into shareable links',
+  ogDescription: description,
+  ogImage: ogImageUrl,
+  ogImageType: 'image/jpeg',
+  ogImageWidth: 1600,
+  ogImageHeight: 840,
+  ogImageAlt: 'FileMCP — Turn AI-generated work into shareable links',
+  twitterTitle: 'FileMCP — Turn AI-generated work into shareable links',
+  twitterDescription: description,
+  twitterImage: ogImageUrl,
+  twitterImageAlt: 'FileMCP — Turn AI-generated work into shareable links',
 })
 
 // Drop demo.mp4 into apps/web/public/ then flip hasDemoVideo to true
