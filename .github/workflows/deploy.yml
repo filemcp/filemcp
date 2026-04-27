@@ -61,6 +61,8 @@ jobs:
           SES_REGION=${{ vars.SES_REGION || 'eu-central-1' }}
           SES_ACCESS_KEY_ID=${{ secrets.SES_ACCESS_KEY_ID }}
           SES_SECRET_ACCESS_KEY=${{ secrets.SES_SECRET_ACCESS_KEY }}
+          EMAIL_FROM_ADDRESS=${{ vars.EMAIL_FROM_ADDRESS || 'noreply@filemcp.com' }}
+          EMAIL_FROM_NAME=${{ vars.EMAIL_FROM_NAME || 'FileMCP' }}
           EOF
           # strip leading whitespace introduced by heredoc indentation
           sed -i 's/^ *//' /tmp/deploy.env
