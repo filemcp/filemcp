@@ -15,7 +15,7 @@
     "playwright": "1.59.1"
   },
   "devDependencies": {
-    "@types/node": "^22.0.0",
+    "@types/node": "^25.6.0",
     "prisma": "^6.0.0",
     "tsx": "^4.19.0",
     "typescript": "^5.7.0"
