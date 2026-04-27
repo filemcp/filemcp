@@ -190,8 +190,9 @@ model Version {
   thumbnailPath String?
   createdAt     DateTime @default(now())
 
-  assetId String
-  asset   Asset  @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  assetId  String
+  asset    Asset     @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  comments Comment[]
 
   @@unique([assetId, number])
 }
@@ -211,13 +212,17 @@ model Comment {
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
 
-  assetId  String
-  asset    Asset    @relation(fields: [assetId], references: [id], onDelete: Cascade)
-  authorId String?
-  author   User?    @relation(fields: [authorId], references: [id], onDelete: SetNull)
-  parentId String?
-  parent   Comment? @relation("replies", fields: [parentId], references: [id])
-  replies  Comment[] @relation("replies")
+  assetId   String
+  asset     Asset    @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  versionId String
+  version   Version  @relation(fields: [versionId], references: [id], onDelete: Cascade)
+  authorId  String?
+  author    User?    @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  parentId  String?
+  parent    Comment? @relation("replies", fields: [parentId], references: [id])
+  replies   Comment[] @relation("replies")
+
+  @@index([versionId])
 }
 
 enum OrgRole   { OWNER WRITE READ }

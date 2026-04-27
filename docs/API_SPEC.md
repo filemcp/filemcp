@@ -397,12 +397,13 @@ Get all comments for an asset.
 ---
 
 ### POST /assets/:assetId/comments
-Post a new comment. Anonymous commenters must supply `anonName`.
+Post a new comment. Anonymous commenters must supply `anonName`. Top-level comments must include `versionId` (the version the commenter was viewing); replies inherit `versionId` from their parent and should omit it.
 
 **Body:**
 ```json
 {
   "body": "This slide is unclear",
+  "versionId": "ver_abc123",
   "anchorType": "POSITION",
   "xPct": 0.32,
   "yPct": 0.55,
@@ -416,6 +417,7 @@ Line-range anchor:
 ```json
 {
   "body": "Should we add a summary?",
+  "versionId": "ver_abc123",
   "anchorType": "LINE_RANGE",
   "lineStart": 14,
   "lineEnd": 18,
@@ -423,12 +425,12 @@ Line-range anchor:
 }
 ```
 
-Reply:
+Reply (no `versionId` — inherits from parent):
 ```json
 { "body": "Good point", "parentId": "cmt_1", "anonName": "Alice" }
 ```
 
-**Response 201:** the created comment object
+**Response 201:** the created comment object, including `versionId` and `versionNumber`.
 
 ---
 
@@ -477,6 +479,15 @@ Input:
 ```json
 { "slug": "my-deck", "version": 2 }
 ```
+
+**`read_asset_comments`** — Returns inline comments left on an asset (threaded, with author, date, version, anchor, and resolved status). Use to feed reviewer feedback back into the agent before publishing a new version.
+
+Input:
+```json
+{ "slug": "my-deck", "unresolved_only": true, "since_version": 2 }
+```
+
+`since_version` filters to comments made on the given version number or later — useful for "what new feedback came in on the version I just shipped."
 
 ---
 

@@ -157,6 +157,7 @@ function printAsset() {
           :content-url="asset.currentVersion.contentUrl"
           :comment-mode="commentStore.commentMode"
           :comments="commentStore.comments"
+          :current-version-id="asset.currentVersion.id"
           @click="handleViewerClick"
         />
         <AssetMarkdownRenderer
@@ -164,6 +165,7 @@ function printAsset() {
           :content-url="asset.currentVersion.contentUrl"
           :comment-mode="commentStore.commentMode"
           :comments="commentStore.comments"
+          :current-version-id="asset.currentVersion.id"
           @click="handleViewerClick"
         />
         <AssetJsonRenderer
@@ -193,6 +195,8 @@ function printAsset() {
         :comments="commentStore.comments"
         :asset-id="asset.assetId"
         :is-owner="asset.isOwner"
+        :current-version-id="asset.currentVersion.id"
+        :current-version-number="asset.currentVersion.number"
         @refresh="refreshComments"
       />
     </div>

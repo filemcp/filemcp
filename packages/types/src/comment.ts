@@ -16,6 +16,8 @@ export interface Comment {
   resolved: boolean
   author: CommentAuthor | null
   anonName: string | null
+  versionId: string
+  versionNumber: number | null
   createdAt: string
   updatedAt: string
   replies: CommentReply[]
@@ -26,11 +28,14 @@ export interface CommentReply {
   body: string
   author: CommentAuthor | null
   anonName: string | null
+  versionId: string
+  versionNumber: number | null
   createdAt: string
 }
 
 export interface CreateCommentPayload {
   body: string
+  versionId?: string
   anchorType?: AnchorType
   xPct?: number
   yPct?: number

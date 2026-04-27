@@ -294,6 +294,7 @@ export class AssetsService {
       owner: { org: asset.org.slug },
       latestVersion: asset.versions[0]?.number ?? 1,
       currentVersion: {
+        id: targetVersion.id,
         number: targetVersion.number,
         fileType: targetVersion.fileType,
         contentUrl,
