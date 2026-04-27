@@ -3,6 +3,7 @@ definePageMeta({ middleware: 'guest' })
 
 const route = useRoute()
 const auth = useAuthStore()
+const inviteToken = computed(() => (route.query.invite as string) ?? null)
 const email = ref((route.query.prefill_email as string) ?? '')
 const username = ref('')
 const password = ref('')
@@ -43,6 +44,7 @@ async function submit() {
           username: username.value,
           password: password.value,
           orgName: orgName.value.trim() || undefined,
+          inviteToken: inviteToken.value || undefined,
         },
       },
     )
@@ -65,13 +67,20 @@ async function submit() {
         </NuxtLink>
       </div>
       <h1 class="text-2xl font-bold text-white text-center">Create account</h1>
+      <div
+        v-if="inviteToken"
+        class="text-xs text-cyan-300/80 bg-cyan-500/[0.04] border border-cyan-500/30 rounded-lg px-3 py-2 leading-relaxed"
+      >
+        You're accepting an invitation. After signup you'll be added to the workspace automatically.
+      </div>
       <form class="space-y-4" @submit.prevent="submit">
         <div>
           <input
             v-model="email"
             type="email"
             placeholder="Email"
-            :class="[inputBase, fieldErrors.email ? inputErr : inputOk]"
+            :readonly="!!inviteToken"
+            :class="[inputBase, fieldErrors.email ? inputErr : inputOk, inviteToken ? 'opacity-70 cursor-not-allowed' : '']"
             @input="clearField('email')"
           />
           <p v-if="fieldErrors.email" class="text-red-400 text-xs mt-1.5 px-1">{{ fieldErrors.email[0] }}</p>

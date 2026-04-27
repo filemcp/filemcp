@@ -50,6 +50,35 @@ export class EmailService implements OnModuleInit {
     })
   }
 
+  async sendPasswordReset(to: string, resetUrl: string) {
+    return this.send({
+      to,
+      subject: 'Reset your FileMCP password',
+      template: 'password-reset',
+      vars: { resetUrl },
+    })
+  }
+
+  async sendInvitation(opts: {
+    to: string
+    orgName: string
+    inviterName: string
+    roleLabel: string
+    inviteUrl: string
+  }) {
+    return this.send({
+      to: opts.to,
+      subject: `${opts.inviterName} invited you to ${opts.orgName} on FileMCP`,
+      template: 'invitation',
+      vars: {
+        orgName: opts.orgName,
+        inviterName: opts.inviterName,
+        roleLabel: opts.roleLabel,
+        inviteUrl: opts.inviteUrl,
+      },
+    })
+  }
+
   async send(opts: SendOptions): Promise<void> {
     const html = await this.render(opts.template, opts.vars)
     const text = opts.text ?? this.htmlToText(html)

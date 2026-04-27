@@ -5,6 +5,7 @@ import { ConfigModule } from '@nestjs/config'
 import { AuthService } from './auth.service'
 import { PrismaModule } from '../../prisma/prisma.module'
 import { EmailService } from '../email/email.service'
+import { InvitationsService } from '../invitations/invitations.service'
 
 async function buildService() {
   const module = await Test.createTestingModule({
@@ -15,8 +16,8 @@ async function buildService() {
     ],
     providers: [
       AuthService,
-      // Stubbed EmailService — register() fires the welcome email but tests don't need to assert delivery
-      { provide: EmailService, useValue: { sendWelcome: async () => {}, send: async () => {} } },
+      { provide: EmailService, useValue: { sendWelcome: async () => {}, sendPasswordReset: async () => {}, send: async () => {} } },
+      { provide: InvitationsService, useValue: { accept: async () => {}, decline: async () => {} } },
     ],
   }).compile()
   return module.get(AuthService)

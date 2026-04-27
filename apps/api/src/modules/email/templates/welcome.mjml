@@ -7,7 +7,7 @@
       <!-- Single source of truth for horizontal alignment: every text/image/button uses padding="X 32px" -->
       <mj-text color="#d4d4d8" font-size="15px" line-height="1.6" padding="0 32px" />
       <mj-image padding="0 32px" align="left" />
-      <mj-button padding="0 32px" align="left" inner-padding="14px 28px" background-color="#06b6d4" color="#09090b" font-weight="600" font-size="14px" border-radius="8px" />
+      <mj-button padding="0 32px" align="left" inner-padding="14px 28px" background-color="#06b6d4" color="#ffffff" font-weight="600" font-size="14px" border-radius="8px" />
       <mj-divider padding="0 32px" border-color="#27272a" border-width="1px" />
       <mj-section padding="0" />
       <mj-column padding="0" />

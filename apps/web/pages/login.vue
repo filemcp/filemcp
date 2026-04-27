@@ -2,6 +2,8 @@
 definePageMeta({ middleware: 'guest' })
 
 const auth = useAuthStore()
+const route = useRoute()
+const inviteToken = computed(() => (route.query.invite as string) ?? null)
 const email = ref('')
 const password = ref('')
 const loading = ref(false)
@@ -21,6 +23,13 @@ async function submit() {
       { method: 'POST', body: { email: email.value, password: password.value } },
     )
     auth.setSession(res.accessToken, res.user)
+
+    // If signing in to accept an invitation, route to the invite page so the user
+    // can confirm + accept (handles email-mismatch checks server-side).
+    if (inviteToken.value) {
+      await navigateTo(`/invite/${inviteToken.value}`)
+      return
+    }
     await navigateTo('/dashboard')
   } catch (e: any) {
     setFromException(e, 'Login failed')
@@ -39,6 +48,12 @@ async function submit() {
         </NuxtLink>
       </div>
       <h1 class="text-2xl font-bold text-white text-center">Sign in</h1>
+      <div
+        v-if="inviteToken"
+        class="text-xs text-cyan-300/80 bg-cyan-500/[0.04] border border-cyan-500/30 rounded-lg px-3 py-2 leading-relaxed"
+      >
+        Sign in to accept your workspace invitation.
+      </div>
       <form class="space-y-4" @submit.prevent="submit">
         <div>
           <input
@@ -68,6 +83,11 @@ async function submit() {
         >
           {{ loading ? 'Signing in…' : 'Sign in' }}
         </button>
+        <p class="text-center">
+          <NuxtLink to="/forgot-password" class="text-zinc-500 hover:text-zinc-300 text-xs transition">
+            Forgot password?
+          </NuxtLink>
+        </p>
       </form>
       <p class="text-zinc-500 text-sm text-center">
         No account?

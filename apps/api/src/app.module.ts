@@ -11,6 +11,7 @@ import { CommentsModule } from './modules/comments/comments.module'
 import { StorageModule } from './modules/storage/storage.module'
 import { McpModule } from './modules/mcp/mcp.module'
 import { EmailModule } from './modules/email/email.module'
+import { InvitationsModule } from './modules/invitations/invitations.module'
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { EmailModule } from './modules/email/email.module'
     StorageModule,
     McpModule,
     EmailModule,
+    InvitationsModule,
   ],
 })
 export class AppModule {}
