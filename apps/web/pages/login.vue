@@ -4,11 +4,15 @@ definePageMeta({ middleware: 'guest' })
 const auth = useAuthStore()
 const email = ref('')
 const password = ref('')
-const error = ref('')
 const loading = ref(false)
+const { fieldErrors, topError, setFromException, clearField, reset } = useFormErrors()
+
+const inputBase = 'w-full px-4 py-3 bg-zinc-900 text-white rounded-lg border focus:outline-none transition'
+const inputOk = 'border-zinc-800 focus:border-cyan-500 focus:shadow-[0_0_0_3px_rgba(34,211,238,0.14)]'
+const inputErr = 'border-red-500/70 focus:border-red-500 focus:shadow-[0_0_0_3px_rgba(239,68,68,0.18)]'
 
 async function submit() {
-  error.value = ''
+  reset()
   loading.value = true
   try {
     const config = useRuntimeConfig()
@@ -19,7 +23,7 @@ async function submit() {
     auth.setSession(res.accessToken, res.user)
     await navigateTo('/dashboard')
   } catch (e: any) {
-    error.value = e?.data?.message ?? 'Login failed'
+    setFromException(e, 'Login failed')
   } finally {
     loading.value = false
   }
@@ -29,30 +33,38 @@ async function submit() {
 <template>
   <div class="min-h-screen bg-zinc-950 flex items-center justify-center px-4">
     <div class="w-full max-w-sm space-y-6">
-      <div class="text-center">
-        <NuxtLink to="/" class="inline-block text-2xl font-black tracking-tight select-none">
-          <span class="text-white">file</span><span class="bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">mcp</span>
+      <div class="flex justify-center">
+        <NuxtLink to="/" class="inline-block select-none">
+          <img src="/logo.png" alt="FileMCP" class="h-8 w-auto" />
         </NuxtLink>
       </div>
       <h1 class="text-2xl font-bold text-white text-center">Sign in</h1>
       <form class="space-y-4" @submit.prevent="submit">
-        <input
-          v-model="email"
-          type="email"
-          placeholder="Email"
-          class="w-full px-4 py-3 bg-zinc-900 text-white rounded-lg border border-zinc-800 focus:outline-none focus:border-zinc-600"
-        />
-        <input
-          v-model="password"
-          type="password"
-          placeholder="Password"
-          class="w-full px-4 py-3 bg-zinc-900 text-white rounded-lg border border-zinc-800 focus:outline-none focus:border-zinc-600"
-        />
-        <p v-if="error" class="text-red-400 text-sm">{{ error }}</p>
+        <div>
+          <input
+            v-model="email"
+            type="email"
+            placeholder="Email"
+            :class="[inputBase, fieldErrors.email ? inputErr : inputOk]"
+            @input="clearField('email')"
+          />
+          <p v-if="fieldErrors.email" class="text-red-400 text-xs mt-1.5 px-1">{{ fieldErrors.email[0] }}</p>
+        </div>
+        <div>
+          <input
+            v-model="password"
+            type="password"
+            placeholder="Password"
+            :class="[inputBase, fieldErrors.password ? inputErr : inputOk]"
+            @input="clearField('password')"
+          />
+          <p v-if="fieldErrors.password" class="text-red-400 text-xs mt-1.5 px-1">{{ fieldErrors.password[0] }}</p>
+        </div>
+        <p v-if="topError" class="text-red-400 text-sm">{{ topError }}</p>
         <button
           type="submit"
           :disabled="loading"
-          class="w-full py-3 bg-white text-zinc-950 rounded-lg font-semibold hover:bg-zinc-100 transition disabled:opacity-50"
+          class="w-full py-3 bg-white text-zinc-950 rounded-lg font-semibold hover:bg-zinc-100 hover:shadow-[0_0_30px_rgba(34,211,238,0.45)] transition disabled:opacity-50"
         >
           {{ loading ? 'Signing in…' : 'Sign in' }}
         </button>
