@@ -38,7 +38,7 @@ onMounted(() => {
       class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4"
       @click="onBackdrop"
     >
-      <div class="bg-zinc-900 border border-zinc-800 rounded-2xl w-full max-w-md shadow-2xl shadow-black/60 p-6 space-y-5">
+      <div class="bg-zinc-900 border border-zinc-800 rounded-2xl w-full max-w-md shadow-2xl shadow-black/60 p-6 space-y-5 text-zinc-100">
         <!-- Header -->
         <div class="flex items-center justify-between">
           <h2 class="text-sm font-semibold">Share link</h2>
