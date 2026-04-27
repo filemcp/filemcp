@@ -16,7 +16,7 @@ const year = new Date().getFullYear()
         <div class="flex items-center gap-4">
           <NuxtLink to="/terms" class="hover:text-zinc-300 transition">Terms</NuxtLink>
           <NuxtLink to="/privacy" class="hover:text-zinc-300 transition">Privacy</NuxtLink>
-          <a href="https://discord.gg/filemcp" target="_blank" rel="noopener" class="hover:text-zinc-300 transition">Discord</a>
+          <a href="https://discord.gg/hRVhz5WTpe" target="_blank" rel="noopener" class="hover:text-zinc-300 transition">Discord</a>
           <a href="https://github.com/filemcp/filemcp" target="_blank" rel="noopener" class="hover:text-zinc-300 transition">GitHub</a>
         </div>
       </div>
