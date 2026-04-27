@@ -28,7 +28,7 @@ export class EmailService implements OnModuleInit {
   constructor(private config: ConfigService) {}
 
   onModuleInit() {
-    this.dryRun = this.config.get('EMAIL_DRY_RUN', 'true') === 'true'
+    this.dryRun = this.config.get('EMAIL_DRY_RUN', 'false') === 'true'
     this.fromAddress = this.config.get('EMAIL_FROM_ADDRESS', 'noreply@filemcp.com')
     this.fromName = this.config.get('EMAIL_FROM_NAME', 'FileMCP')
     this.appUrl = this.config.get('APP_URL', 'http://localhost:3000')
@@ -134,13 +134,10 @@ export class EmailService implements OnModuleInit {
     const text = opts.text ?? this.htmlToText(html)
     const fromHeader = `${this.fromName} <${this.fromAddress}>`
 
-    // Always write a preview file in dev so we can dial in the visual
-    // even while live-sending via SES. Skipped in production.
-    if (process.env.NODE_ENV !== 'production') {
-      this.previewLocally(opts, html)
+    if (this.dryRun) {
+      if (process.env.NODE_ENV !== 'production') this.previewLocally(opts, html)
+      return
     }
-
-    if (this.dryRun) return
 
     const inlineImages: Array<{ cid: string; filename: string; data: Buffer; type: string }> = []
     const logo = this.getLogoBuffer()
