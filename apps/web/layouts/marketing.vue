@@ -21,7 +21,7 @@ const accountLinks = [
 
 const communityLinks = [
   // TODO(ara): replace with real Discord invite URL
-  { label: 'Discord', href: 'https://discord.gg/filemcp' },
+  { label: 'Discord', href: 'https://discord.gg/hRVhz5WTpe' },
   { label: 'GitHub', href: 'https://github.com/filemcp/filemcp' },
 ]
 
@@ -62,7 +62,7 @@ const year = new Date().getFullYear()
             </svg>
           </a>
           <a
-            href="https://discord.gg/filemcp"
+            href="https://discord.gg/hRVhz5WTpe"
             target="_blank"
             rel="noopener"
             class="hidden sm:inline-flex p-2 text-zinc-400 hover:text-white transition rounded-md hover:bg-zinc-900"

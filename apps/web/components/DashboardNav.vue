@@ -88,7 +88,7 @@ const TABS = [
         </a>
         <!-- Discord (desktop) -->
         <a
-          href="https://discord.gg/filemcp"
+          href="https://discord.gg/hRVhz5WTpe"
           target="_blank"
           rel="noopener"
           class="hidden md:inline-flex p-2 text-zinc-400 hover:text-white transition rounded-md hover:bg-zinc-900 mr-1"
@@ -209,7 +209,7 @@ const TABS = [
             class="block px-3 py-2.5 rounded-md text-zinc-300 hover:bg-zinc-900 transition-colors"
           >GitHub</a>
           <a
-            href="https://discord.gg/filemcp"
+            href="https://discord.gg/hRVhz5WTpe"
             target="_blank"
             rel="noopener"
             class="block px-3 py-2.5 rounded-md text-zinc-300 hover:bg-zinc-900 transition-colors"
