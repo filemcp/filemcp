@@ -4,11 +4,11 @@ updates:
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
       day: "monday"
       time: "09:00"
       timezone: "Europe/Berlin"
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 5
     labels:
       - "type:chore"
       - "area:deps"
@@ -35,6 +35,10 @@ updates:
       - dependency-name: "vue"
         update-types: ["version-update:semver-major"]
       - dependency-name: "@vue/*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "pinia"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@pinia/*"
         update-types: ["version-update:semver-major"]
       - dependency-name: "@vitejs/*"
         update-types: ["version-update:semver-major"]
