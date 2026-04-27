@@ -35,7 +35,11 @@ export class EmailService implements OnModuleInit {
 
     if (!this.dryRun) {
       this.ses = new SESv2Client({
-        region: this.config.get('AWS_REGION', 'us-east-1'),
+        region: this.config.get('SES_REGION', 'us-east-1'),
+        credentials: {
+          accessKeyId: this.config.get('SES_ACCESS_KEY_ID', ''),
+          secretAccessKey: this.config.get('SES_SECRET_ACCESS_KEY', ''),
+        },
       })
     }
   }
