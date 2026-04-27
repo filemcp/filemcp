@@ -6,10 +6,11 @@ import { PublicController } from './public.controller'
 import { StorageModule } from '../storage/storage.module'
 import { RenderModule } from '../render/render.module'
 import { ThumbnailModule } from '../thumbnail/thumbnail.module'
+import { EmailModule } from '../email/email.module'
 import { OrgRoleGuard } from '../auth/guards/org-role.guard'
 
 @Module({
-  imports: [ConfigModule, StorageModule, RenderModule, ThumbnailModule],
+  imports: [ConfigModule, StorageModule, RenderModule, ThumbnailModule, EmailModule],
   providers: [AssetsService, OrgRoleGuard],
   controllers: [AssetsController, PublicController],
   exports: [AssetsService],

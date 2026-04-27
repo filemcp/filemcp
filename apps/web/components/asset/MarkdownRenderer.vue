@@ -15,7 +15,7 @@ const versionPins = computed(() =>
 )
 
 const emit = defineEmits<{
-  click: [{ xPct: number; yPct: number; selectorHint: string }]
+  click: [{ xPct: number; yPct: number; viewXPct: number; viewYPct: number; selectorHint: string }]
 }>()
 
 const containerRef = ref<HTMLDivElement>()
@@ -34,27 +34,30 @@ function buildSelectorHint(el: Element): string {
 function handleClick(e: MouseEvent) {
   if (!props.commentMode || !containerRef.value) return
   const rect = containerRef.value.getBoundingClientRect()
-  const xPct = (e.clientX - rect.left) / rect.width
-  const yPct = (e.clientY - rect.top) / rect.height
+  const scrollLeft = containerRef.value.scrollLeft
+  const scrollTop = containerRef.value.scrollTop
+  const docWidth = containerRef.value.scrollWidth
+  const docHeight = containerRef.value.scrollHeight
+  const viewXPct = (e.clientX - rect.left) / containerRef.value.clientWidth
+  const viewYPct = (e.clientY - rect.top) / containerRef.value.clientHeight
+  const xPct = ((e.clientX - rect.left) + scrollLeft) / docWidth
+  const yPct = ((e.clientY - rect.top) + scrollTop) / docHeight
   const selectorHint = buildSelectorHint(e.target as Element)
-  emit('click', { xPct, yPct, selectorHint })
+  emit('click', { xPct, yPct, viewXPct, viewYPct, selectorHint })
 }
 </script>
 
 <template>
   <div
     ref="containerRef"
-    class="relative w-full h-full overflow-y-auto bg-white dark:bg-zinc-900"
-    :class="commentMode ? 'cursor-crosshair' : ''"
+    class="w-full h-full overflow-y-auto bg-white dark:bg-zinc-900"
     @click="handleClick"
   >
-    <article
-      class="prose prose-zinc dark:prose-invert max-w-3xl mx-auto py-12 px-6"
-      v-html="html"
-    />
-
-    <!-- Comment pins overlay -->
-    <div class="absolute inset-0 pointer-events-none">
+    <div class="relative" :class="commentMode ? 'cursor-crosshair' : ''">
+      <article
+        class="prose prose-zinc dark:prose-invert max-w-3xl mx-auto py-12 px-6"
+        v-html="html"
+      />
       <CommentPin
         v-for="(comment, i) in versionPins"
         :key="comment.id"

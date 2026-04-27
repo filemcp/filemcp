@@ -4,7 +4,7 @@ import type { Comment } from '@filemcp/types'
 interface CommentState {
   comments: Comment[]
   commentMode: boolean
-  pendingAnchor: { xPct: number; yPct: number; selectorHint: string } | null
+  pendingAnchor: { xPct: number; yPct: number; viewXPct: number; viewYPct: number; selectorHint: string } | null
   activeCommentId: string | null
 }
 

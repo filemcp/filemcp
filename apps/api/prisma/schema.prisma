@@ -14,8 +14,9 @@ model Organization {
   description String?
   createdAt   DateTime @default(now())
 
-  members OrgMember[]
-  assets  Asset[]
+  members     OrgMember[]
+  assets      Asset[]
+  invitations Invitation[]
 }
 
 model OrgMember {
@@ -41,8 +42,51 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  memberships OrgMember[]
-  comments    Comment[]
+  memberships         OrgMember[]
+  comments            Comment[]
+  passwordResetTokens PasswordResetToken[]
+  sentInvitations     Invitation[]         @relation("invitedBy")
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  tokenHash String    @unique
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+}
+
+model Invitation {
+  id          String           @id @default(cuid())
+  tokenHash   String           @unique
+  email       String
+  role        OrgRole
+  status      InvitationStatus @default(PENDING)
+  expiresAt   DateTime
+  createdAt   DateTime         @default(now())
+  acceptedAt  DateTime?
+  declinedAt  DateTime?
+  revokedAt   DateTime?
+
+  orgId       String
+  org         Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  invitedById String
+  invitedBy   User         @relation("invitedBy", fields: [invitedById], references: [id], onDelete: Cascade)
+
+  @@index([orgId])
+  @@index([email])
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  EXPIRED
+  REVOKED
 }
 
 model ApiKey {

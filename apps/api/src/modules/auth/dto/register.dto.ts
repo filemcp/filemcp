@@ -18,4 +18,9 @@ export class RegisterDto {
   @IsString()
   @MaxLength(80)
   orgName?: string
+
+  // Optional invitation token — if present, the new user is auto-added to the invited org.
+  @IsOptional()
+  @IsString()
+  inviteToken?: string
 }

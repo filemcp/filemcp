@@ -11,6 +11,7 @@ import { PrismaService } from '../../prisma/prisma.service'
 import { StorageService } from '../storage/storage.service'
 import { RenderService } from '../render/render.service'
 import { ThumbnailService } from '../thumbnail/thumbnail.service'
+import { EmailService } from '../email/email.service'
 import { UploadAssetDto } from './dto/upload-asset.dto'
 import { UpdateAssetDto } from './dto/update-asset.dto'
 import { generateSlug, slugify } from '../../utils/slug'
@@ -48,6 +49,7 @@ export class AssetsService {
     private render: RenderService,
     private thumbnail: ThumbnailService,
     private config: ConfigService,
+    private email: EmailService,
   ) {}
 
   async upload(
@@ -208,6 +210,35 @@ export class AssetsService {
     return this.prisma.asset.update({ where: { id: assetId }, data: dto })
   }
 
+  async shareLink(
+    orgId: string,
+    userId: string,
+    assetId: string,
+    opts: { email: string; mode: 'comments' | 'view'; note?: string },
+  ) {
+    const asset = await this.prisma.asset.findUnique({
+      where: { id: assetId },
+      include: { org: { select: { slug: true } } },
+    })
+    if (!asset) throw new NotFoundException()
+    if (asset.orgId !== orgId) throw new ForbiddenException()
+
+    const sender = await this.prisma.user.findUniqueOrThrow({ where: { id: userId } })
+
+    const appUrl = this.config.get<string>('APP_URL', 'http://localhost:3000')
+    const base = `${appUrl}/u/${asset.org.slug}/${asset.uuid}`
+    const assetUrl = opts.mode === 'view' ? `${base}?mode=view` : base
+
+    void this.email.sendAssetShared({
+      to: opts.email,
+      senderName: sender.username,
+      assetTitle: asset.title ?? asset.slug,
+      assetUrl,
+      note: opts.note,
+      viewMode: opts.mode,
+    })
+  }
+
   async delete(orgId: string, assetId: string) {
     const asset = await this.prisma.asset.findUnique({ where: { id: assetId } })
     if (!asset) throw new NotFoundException()
@@ -240,11 +271,14 @@ export class AssetsService {
       ? `/api/public/${orgSlug}/${uuid}/v/${versionNumber}/content`
       : `/api/public/${orgSlug}/${uuid}/content`
 
-    const isOwnerMember = requestingUserId
-      ? await this.prisma.orgMember.findFirst({ where: { orgId: asset.orgId, userId: requestingUserId } }).then(Boolean)
-      : false
+    const membership = requestingUserId
+      ? await this.prisma.orgMember.findFirst({ where: { orgId: asset.orgId, userId: requestingUserId }, select: { role: true } })
+      : null
 
-    const updated = isOwnerMember
+    const isMember = !!membership
+    const isOwner = membership?.role === 'OWNER'
+
+    const updated = isMember
       ? await this.prisma.asset.findUnique({ where: { id: asset.id }, select: { viewCount: true } }) ?? { viewCount: asset.viewCount }
       : await this.prisma.asset.update({
           where: { id: asset.id },
@@ -271,7 +305,8 @@ export class AssetsService {
       commentCount: asset._count.comments,
       viewCount: updated.viewCount,
       visibility: asset.visibility,
-      isOwner: isOwnerMember,
+      isOwner,
+      isMember,
     }
   }
 

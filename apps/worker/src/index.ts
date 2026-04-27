@@ -18,6 +18,9 @@ const connection = {
 const s3Endpoint = process.env.S3_ENDPOINT || undefined
 const s3Bucket = process.env.S3_BUCKET ?? 'filemcp-assets'
 const s3PublicUrl = process.env.S3_PUBLIC_URL ?? ''
+// Playwright runs inside the backend network, so it must reach S3 via the internal endpoint.
+// S3_PUBLIC_URL is browser-facing (e.g. localhost:9000) and unreachable from inside Docker.
+const s3InternalBase = s3Endpoint ? `${s3Endpoint}/${s3Bucket}` : s3PublicUrl
 
 const s3 = new S3Client({
   ...(s3Endpoint ? { endpoint: s3Endpoint } : {}),
@@ -35,7 +38,7 @@ const worker = new Worker<ScreenshotJob>(
   'screenshots',
   async (job: Job<ScreenshotJob>) => {
     const { versionId, contentKey, thumbnailKey } = job.data
-    const contentUrl = `${s3PublicUrl}/${contentKey}`
+    const contentUrl = `${s3InternalBase}/${contentKey}`
 
     console.log(`[screenshot] versionId=${versionId} url=${contentUrl}`)
 

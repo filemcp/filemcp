@@ -1,0 +1,147 @@
+<mjml>
+  <mj-head>
+    <mj-title>Welcome to FileMCP</mj-title>
+    <mj-preview>Your AI agents now have a place to publish.</mj-preview>
+    <mj-attributes>
+      <mj-all font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" />
+      <!-- Single source of truth for horizontal alignment: every text/image/button uses padding="X 32px" -->
+      <mj-text color="#d4d4d8" font-size="15px" line-height="1.6" padding="0 32px" />
+      <mj-image padding="0 32px" align="left" />
+      <mj-button padding="0 32px" align="left" inner-padding="14px 28px" background-color="#06b6d4" color="#ffffff" font-weight="600" font-size="14px" border-radius="8px" />
+      <mj-divider padding="0 32px" border-color="#27272a" border-width="1px" />
+      <mj-section padding="0" />
+      <mj-column padding="0" />
+    </mj-attributes>
+    <mj-style inline="inline">
+      a { color: #67e8f9; text-decoration: none; }
+    </mj-style>
+  </mj-head>
+
+  <mj-body background-color="#09090b" width="600px">
+
+    <!-- Top spacer + logo -->
+    <mj-section padding-top="40px">
+      <mj-column>
+        <mj-image src="{{logoSrc}}" alt="FileMCP" width="140px" />
+      </mj-column>
+    </mj-section>
+
+    <!-- Eyebrow -->
+    <mj-section padding-top="32px">
+      <mj-column>
+        <mj-text color="#67e8f9" font-size="11px" font-weight="500" letter-spacing="2px" text-transform="uppercase">
+          Welcome aboard
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <!-- Headline -->
+    <mj-section padding-top="10px">
+      <mj-column>
+        <mj-text color="#fafafa" font-size="32px" font-weight="600" line-height="1.15" letter-spacing="-0.5px">
+          You're in.
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <!-- Body copy -->
+    <mj-section padding-top="20px">
+      <mj-column>
+        <mj-text color="#d4d4d8" font-size="16px" line-height="1.6">
+          FileMCP gives your AI agents a place to publish their work. Generate a deck, a report, a prototype — push it from your terminal or AI tool, and you'll get a shareable link in seconds.
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <!-- "How it works" section label -->
+    <mj-section padding-top="32px">
+      <mj-column>
+        <mj-text color="#a1a1aa" font-size="11px" font-weight="500" letter-spacing="2px" text-transform="uppercase">
+          How it works
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <!-- Step 1 -->
+    <mj-section padding-top="16px">
+      <mj-column>
+        <mj-text>
+          <span style="color:#22d3ee;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:13px;letter-spacing:1.5px;margin-right:14px;">01</span>
+          <span style="color:#fafafa;font-weight:600;">Generate</span>
+        </mj-text>
+        <mj-text padding-top="4px" color="#a1a1aa" font-size="14px">
+          Use your AI agent to create a presentation, proposal, or any other type of HTML asset.
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <!-- Step 2 -->
+    <mj-section padding-top="16px">
+      <mj-column>
+        <mj-text>
+          <span style="color:#22d3ee;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:13px;letter-spacing:1.5px;margin-right:14px;">02</span>
+          <span style="color:#fafafa;font-weight:600;">Publish</span>
+        </mj-text>
+        <mj-text padding-top="4px" color="#a1a1aa" font-size="14px">
+          Ask your agent to publish it on FileMCP to get back a shareable URL.
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <!-- Step 3 -->
+    <mj-section padding-top="16px">
+      <mj-column>
+        <mj-text>
+          <span style="color:#22d3ee;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:13px;letter-spacing:1.5px;margin-right:14px;">03</span>
+          <span style="color:#fafafa;font-weight:600;">Revise</span>
+        </mj-text>
+        <mj-text padding-top="4px" color="#a1a1aa" font-size="14px">
+          Reviewers comment in the browser. Your agent reads the feedback and ships v2 — at the same URL.
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <!-- CTA -->
+    <mj-section padding-top="32px">
+      <mj-column>
+        <mj-button href="{{appUrl}}/dashboard">
+          Open your dashboard
+        </mj-button>
+      </mj-column>
+    </mj-section>
+
+    <!-- Connect prompt -->
+    <mj-section padding-top="20px">
+      <mj-column>
+        <mj-text color="#a1a1aa" font-size="14px" line-height="1.6">
+          Connect FileMCP to Claude, ChatGPT, Codex, or your own agent in the
+          <a href="{{appUrl}}/dashboard/connect">Connect</a> tab — your API key is already waiting there.
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <!-- Divider -->
+    <mj-section padding-top="40px">
+      <mj-column>
+        <mj-divider />
+      </mj-column>
+    </mj-section>
+
+    <!-- Footer -->
+    <mj-section padding-top="20px" padding-bottom="40px">
+      <mj-column>
+        <mj-text color="#71717a" font-size="12px" line-height="1.6">
+          You're getting this because you just created an account at <a href="{{appUrl}}">filemcp.com</a>.
+        </mj-text>
+        <mj-text padding-top="8px" color="#52525b" font-size="11px" line-height="1.6">
+          © {{year}} NSpark, Inc.<br />
+          <a href="{{appUrl}}/terms">Terms</a> &nbsp;·&nbsp;
+          <a href="{{appUrl}}/privacy">Privacy</a> &nbsp;·&nbsp;
+          <a href="https://discord.gg/hRVhz5WTpe">Discord</a> &nbsp;·&nbsp;
+          <a href="https://github.com/filemcp/filemcp">GitHub</a>
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+  </mj-body>
+</mjml>

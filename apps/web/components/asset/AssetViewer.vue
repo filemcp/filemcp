@@ -21,6 +21,7 @@ const props = defineProps<{
     viewCount: number
     visibility: string
     isOwner: boolean
+    isMember: boolean
   }
 }>()
 
@@ -45,7 +46,7 @@ const { data: commentsData, refresh: refreshComments } = await useApi<Comment[]>
 commentStore.setComments(commentsData.value ?? [])
 watch(commentsData, (val) => commentStore.setComments(val ?? []))
 
-function handleViewerClick(event: { xPct: number; yPct: number; selectorHint: string }) {
+function handleViewerClick(event: { xPct: number; yPct: number; viewXPct: number; viewYPct: number; selectorHint: string }) {
   if (!commentStore.commentMode) return
   commentStore.setPendingAnchor(event)
 }
@@ -54,6 +55,7 @@ onMounted(() => commentStore.setPendingAnchor(null))
 onUnmounted(() => commentStore.setPendingAnchor(null))
 
 const htmlRendererRef = ref<{ print: () => void } | null>(null)
+const shareOpen = ref(false)
 
 function printAsset() {
   if (props.asset.currentVersion.fileType === 'HTML') {
@@ -69,7 +71,7 @@ function printAsset() {
     <!-- Top bar -->
     <header class="flex items-center gap-4 px-4 py-3 border-b border-zinc-800 shrink-0">
       <NuxtLink to="/" class="shrink-0">
-        <img src="/logo.png" alt="filemcp" class="h-6 w-auto" />
+        <img src="/logo.png" alt="FileMCP" class="h-6 w-auto" />
       </NuxtLink>
       <span class="text-zinc-600">/</span>
       <span class="text-zinc-400 text-sm">{{ asset.owner.org }}</span>
@@ -87,12 +89,24 @@ function printAsset() {
 
         <!-- Version selector -->
         <select
+          v-if="asset.isOwner || asset.isMember"
           class="bg-zinc-900 border border-zinc-700 rounded px-2 py-1 text-sm text-zinc-300"
           :value="asset.currentVersion.number"
           @change="(e) => navigateTo(`/u/${asset.owner.org}/${asset.uuid}/v/${(e.target as HTMLSelectElement).value}`)"
         >
           <option v-for="v in asset.latestVersion" :key="v" :value="v">v{{ v }}</option>
         </select>
+
+        <!-- Share button -->
+        <button
+          class="p-2 rounded bg-zinc-800 text-zinc-300 hover:bg-zinc-700 transition"
+          title="Share"
+          @click="shareOpen = true"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/>
+          </svg>
+        </button>
 
         <!-- Print button -->
         <button
@@ -113,7 +127,7 @@ function printAsset() {
           :class="[
             'relative p-2 rounded transition',
             panelOpen
-              ? 'bg-amber-500 text-zinc-950'
+              ? 'bg-cyan-400 text-zinc-950 shadow-[0_0_16px_rgba(34,211,238,0.5)]'
               : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700',
           ]"
           title="Comments"
@@ -126,7 +140,7 @@ function printAsset() {
             v-if="commentStore.comments.length"
             :class="[
               'absolute -top-1 -right-1 text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center leading-none',
-              panelOpen ? 'bg-zinc-950 text-amber-400' : 'bg-amber-500 text-zinc-950',
+              panelOpen ? 'bg-zinc-950 text-cyan-400' : 'bg-cyan-400 text-zinc-950',
             ]"
           >{{ commentStore.comments.length }}</span>
         </button>
@@ -186,5 +200,15 @@ function printAsset() {
         @refresh="refreshComments"
       />
     </div>
+
+    <ShareModal
+      v-if="shareOpen"
+      :org="asset.owner.org"
+      :uuid="asset.uuid"
+      :asset-id="asset.assetId"
+      :org-slug="asset.owner.org"
+      :asset-title="asset.title"
+      @close="shareOpen = false"
+    />
   </div>
 </template>
