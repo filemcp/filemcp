@@ -14,7 +14,11 @@ useSeoMeta({
   title: () => `${data.value?.title ?? uuid} — filemcp`,
   ogTitle: () => data.value?.title ?? uuid,
   description: () => `Shared by ${org} on filemcp`,
+  ogDescription: () => `Shared by ${org} on filemcp`,
   ogImage: () => data.value?.currentVersion?.thumbnailUrl ?? undefined,
+  twitterCard: () => data.value?.currentVersion?.thumbnailUrl ? 'summary_large_image' : 'summary',
+  twitterTitle: () => data.value?.title ?? uuid,
+  twitterImage: () => data.value?.currentVersion?.thumbnailUrl ?? undefined,
 })
 </script>
 
