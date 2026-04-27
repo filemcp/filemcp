@@ -161,6 +161,6 @@ Check the worker logs: `./bb logs --service=playwright-worker`. Thumbnails are q
 
 ## Help
 
-- **Discord** — [discord.gg/filemcp](https://discord.gg/filemcp) for quick questions
+- **[Discord](https://discord.gg/hRVhz5WTpe)** — quick questions
 - **Discussions** — for longer-form questions and design discussions
 - **Issues** — for confirmed bugs or feature requests
