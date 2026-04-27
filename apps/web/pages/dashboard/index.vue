@@ -64,7 +64,7 @@ if (import.meta.client) {
           class="group relative p-[1px] rounded-xl bg-gradient-to-br from-cyan-500/50 via-zinc-700 to-violet-500/50 hover:from-cyan-500/70 hover:to-violet-500/70 transition"
         >
         <div class="rounded-[11px] overflow-hidden bg-zinc-950/95 backdrop-blur-sm">
-          <NuxtLink :to="`/u/${asset.owner.org}/${asset.uuid}`" class="block">
+          <NuxtLink :to="`/u/${asset.owner.org}/${asset.uuid}`" target="_blank" class="block">
             <div class="aspect-video bg-zinc-900 flex items-center justify-center">
               <img
                 v-if="asset.thumbnailUrl"
@@ -80,6 +80,7 @@ if (import.meta.client) {
             <div class="flex items-start justify-between gap-2">
               <NuxtLink
                 :to="`/u/${asset.owner.org}/${asset.uuid}`"
+                target="_blank"
                 class="font-medium text-sm truncate hover:text-zinc-300"
               >
                 {{ asset.title ?? asset.slug }}
