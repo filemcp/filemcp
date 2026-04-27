@@ -4,6 +4,7 @@ import { JwtModule } from '@nestjs/jwt'
 import { ConfigModule } from '@nestjs/config'
 import { AuthService } from './auth.service'
 import { PrismaModule } from '../../prisma/prisma.module'
+import { EmailService } from '../email/email.service'
 
 async function buildService() {
   const module = await Test.createTestingModule({
@@ -12,7 +13,11 @@ async function buildService() {
       PrismaModule,
       JwtModule.register({ secret: 'test-secret', signOptions: { expiresIn: '1h' } }),
     ],
-    providers: [AuthService],
+    providers: [
+      AuthService,
+      // Stubbed EmailService — register() fires the welcome email but tests don't need to assert delivery
+      { provide: EmailService, useValue: { sendWelcome: async () => {}, send: async () => {} } },
+    ],
   }).compile()
   return module.get(AuthService)
 }

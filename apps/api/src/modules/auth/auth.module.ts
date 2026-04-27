@@ -7,10 +7,12 @@ import { AuthController } from './auth.controller'
 import { JwtStrategy } from './strategies/jwt.strategy'
 import { ApiKeyStrategy } from './strategies/api-key.strategy'
 import { UsersModule } from '../users/users.module'
+import { EmailModule } from '../email/email.module'
 
 @Module({
   imports: [
     UsersModule,
+    EmailModule,
     PassportModule,
     JwtModule.registerAsync({
       inject: [ConfigService],

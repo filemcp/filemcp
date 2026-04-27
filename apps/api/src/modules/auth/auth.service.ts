@@ -5,6 +5,7 @@ import * as bcrypt from 'bcryptjs'
 import { PrismaService } from '../../prisma/prisma.service'
 import { RegisterDto } from './dto/register.dto'
 import { slugify } from '../../utils/slug'
+import { EmailService } from '../email/email.service'
 
 @Injectable()
 export class AuthService {
@@ -12,6 +13,7 @@ export class AuthService {
     private prisma: PrismaService,
     private jwt: JwtService,
     private config: ConfigService,
+    private email: EmailService,
   ) {}
 
   async register(dto: RegisterDto) {
@@ -44,6 +46,9 @@ export class AuthService {
     await this.prisma.orgMember.create({
       data: { orgId: org.id, userId: user.id, role: 'OWNER' },
     })
+
+    // Fire-and-forget — don't block registration on email delivery
+    void this.email.sendWelcome(user.email, user.username)
 
     return { accessToken: this.signAccessToken(user.id, user.username), user: this.serializeUser(user) }
   }
