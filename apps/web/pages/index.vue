@@ -61,13 +61,19 @@ const steps = [
       class="relative px-4 pt-16 pb-20 sm:pt-20 sm:pb-28"
       style="clip-path: inset(-200px 0 0 0); -webkit-clip-path: inset(-200px 0 0 0);"
     >
-      <!-- Cyan glow blob — bleeds up into the transparent nav but its hot center sits below it -->
-      <div class="pointer-events-none absolute -top-16 -left-32 w-[480px] h-[480px] lg:w-[900px] lg:h-[900px] rounded-full bg-cyan-500/[0.09] lg:bg-cyan-500/[0.16] blur-[140px]" />
-      <!-- Violet glow blob -->
-      <div class="pointer-events-none absolute top-4 -right-40 w-[440px] h-[440px] lg:w-[800px] lg:h-[800px] rounded-full bg-violet-500/[0.09] lg:bg-violet-500/[0.16] blur-[140px]" />
-      <!-- Center bridge — fills the dark gap between cyan/violet on wide + ultrawide displays -->
-      <div class="pointer-events-none absolute inset-x-0 top-0 flex justify-center">
-        <div class="w-[600px] h-[400px] lg:w-[1000px] lg:h-[500px] xl:w-[1400px] xl:h-[600px] 2xl:w-[1800px] rounded-full bg-violet-500/[0.04] lg:bg-violet-500/[0.07] xl:bg-violet-500/[0.10] blur-[140px] -mt-16" />
+      <!-- Glow blobs — anchored to a content-width wrapper so they sit behind the hero
+           on ultrawide instead of drifting to the screen edges. -->
+      <div class="pointer-events-none absolute inset-0 flex justify-center">
+        <div class="relative w-full max-w-7xl">
+          <!-- Cyan glow blob — bleeds up into the transparent nav but its hot center sits below it -->
+          <div class="absolute -top-16 -left-32 w-[480px] h-[480px] lg:w-[900px] lg:h-[900px] rounded-full bg-cyan-500/[0.22] lg:bg-cyan-500/[0.22] blur-[140px]" />
+          <!-- Violet glow blob -->
+          <div class="absolute top-4 -right-40 w-[440px] h-[440px] lg:w-[800px] lg:h-[800px] rounded-full bg-violet-500/[0.22] lg:bg-violet-500/[0.22] blur-[140px]" />
+          <!-- Center bridge — fills the dark gap between cyan/violet on wide displays -->
+          <div class="absolute inset-x-0 top-0 flex justify-center">
+            <div class="w-[600px] h-[400px] lg:w-[1000px] lg:h-[500px] xl:w-[1400px] xl:h-[600px] rounded-full bg-violet-500/[0.10] lg:bg-violet-500/[0.10] xl:bg-violet-500/[0.14] blur-[140px] -mt-16" />
+          </div>
+        </div>
       </div>
       <!-- Bottom fade — covers the blobs with page bg color so they fade smoothly into the next section -->
       <div class="pointer-events-none absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-zinc-950 to-transparent" />

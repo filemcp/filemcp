@@ -3,6 +3,12 @@
 @tailwind utilities;
 
 @layer base {
+  /* Pin the dark bg before Nuxt/layout hydrates so there's no white flash on first paint. */
+  html,
+  body {
+    background-color: #09090b; /* zinc-950 */
+  }
+
   /* Slim brand scrollbars — zinc thumb at rest, cyan→violet gradient on hover. */
   *::-webkit-scrollbar {
     width: 8px;
