@@ -1,0 +1,93 @@
+name: Bug report
+description: Something is broken or behaving unexpectedly.
+title: "[bug]: "
+labels: ["type:bug", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug. The more detail you can give, the faster we can reproduce and fix it.
+
+        > **Security issues** should be reported privately — see [SECURITY.md](https://github.com/filemcp/filemcp/blob/main/SECURITY.md). Please don't open a public issue for those.
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: A clear, concise description of the bug.
+      placeholder: When I do X, I expect Y but instead Z happens.
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: Numbered steps a maintainer can follow to see the bug.
+      placeholder: |
+        1. Go to '...'
+        2. Click on '...'
+        3. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect to happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: What actually happened?
+      description: Include error messages, stack traces, or screenshots if relevant.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: deployment
+    attributes:
+      label: Deployment
+      options:
+        - Hosted (filemcp.com)
+        - Self-hosted (Docker Compose)
+        - Self-hosted (other)
+        - Local development
+    validations:
+      required: true
+
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Affected surface
+      multiple: true
+      options:
+        - Web app (dashboard)
+        - Web app (asset viewer)
+        - Web app (marketing/auth pages)
+        - REST API
+        - MCP server
+        - CLI / curl
+        - Email
+        - Worker (thumbnails)
+    validations:
+      required: true
+
+  - type: textarea
+    id: env
+    attributes:
+      label: Environment
+      description: Browser/OS/Node/Docker versions where relevant.
+      placeholder: |
+        Browser: Chrome 130
+        OS: macOS 15.0
+        Node: 22.x
+        Docker: 27.x
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else?
+      description: Logs, related issues, recent changes, things you've already tried.
