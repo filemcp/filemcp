@@ -1,5 +1,5 @@
 <script setup lang="ts">
-definePageMeta({ middleware: 'auth' })
+definePageMeta({ middleware: 'auth', layout: 'dashboard' })
 
 const auth = useAuthStore()
 const orgSlug = computed(() => auth.activeOrg?.slug ?? null)
@@ -38,13 +38,10 @@ function copyKey() {
 </script>
 
 <template>
-  <div class="min-h-screen bg-zinc-950 text-white">
-    <DashboardNav />
-
-    <main class="max-w-2xl mx-auto px-6 py-8 space-y-8">
-      <div v-if="newKey" class="border border-emerald-800 rounded-xl overflow-hidden space-y-0">
+  <div class="max-w-2xl mx-auto px-6 py-8 space-y-8">
+      <div v-if="newKey" class="border border-emerald-400/80 rounded-xl overflow-hidden space-y-0 shadow-[0_0_30px_rgba(16,185,129,0.18)]">
         <div class="bg-zinc-900 px-4 pt-4 pb-3 space-y-2">
-          <p class="text-emerald-400 text-sm font-medium">Key created — copy it now, it won't be shown again.</p>
+          <p class="text-emerald-300 text-sm font-medium">Key created — copy it now, it won't be shown again.</p>
           <div class="flex gap-2">
             <code class="flex-1 bg-zinc-950 px-3 py-2 rounded text-xs font-mono text-zinc-300 overflow-x-auto">
               {{ newKey }}
@@ -72,12 +69,12 @@ function copyKey() {
           <input
             v-model="newKeyName"
             placeholder="Key name (e.g. my-cli)"
-            class="flex-1 px-4 py-2 bg-zinc-900 text-white rounded-lg border border-zinc-800 focus:outline-none focus:border-zinc-600 text-sm"
+            class="flex-1 px-4 py-2 bg-zinc-900 text-white rounded-lg border border-zinc-800 focus:outline-none focus:border-cyan-500 focus:shadow-[0_0_0_3px_rgba(34,211,238,0.14)] text-sm"
             @keydown.enter="createKey"
           />
           <button
             :disabled="creating"
-            class="px-4 py-2 bg-white text-zinc-950 rounded-lg text-sm font-semibold hover:bg-zinc-100 transition disabled:opacity-50"
+            class="px-4 py-2 bg-white text-zinc-950 rounded-lg text-sm font-semibold hover:bg-zinc-100 hover:shadow-[0_0_24px_rgba(34,211,238,0.4)] transition disabled:opacity-50"
             @click="createKey"
           >
             Create
@@ -103,7 +100,6 @@ function copyKey() {
             <button class="text-red-500 hover:text-red-400 transition" @click="revokeKey(key.id)">Revoke</button>
           </div>
         </div>
-      </div>
-    </main>
+    </div>
   </div>
 </template>

@@ -69,7 +69,9 @@ function printAsset() {
   <div class="h-screen flex flex-col bg-zinc-950 text-white overflow-hidden">
     <!-- Top bar -->
     <header class="flex items-center gap-4 px-4 py-3 border-b border-zinc-800 shrink-0">
-      <NuxtLink to="/" class="font-bold text-sm">filemcp</NuxtLink>
+      <NuxtLink to="/" class="shrink-0">
+        <img src="/logo.png" alt="FileMCP" class="h-6 w-auto" />
+      </NuxtLink>
       <span class="text-zinc-600">/</span>
       <span class="text-zinc-400 text-sm">{{ asset.owner.org }}</span>
       <span class="text-zinc-600">/</span>
@@ -113,7 +115,7 @@ function printAsset() {
           :class="[
             'relative p-2 rounded transition',
             panelOpen
-              ? 'bg-amber-500 text-zinc-950'
+              ? 'bg-cyan-400 text-zinc-950 shadow-[0_0_16px_rgba(34,211,238,0.5)]'
               : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700',
           ]"
           title="Comments"
@@ -126,7 +128,7 @@ function printAsset() {
             v-if="commentStore.comments.length"
             :class="[
               'absolute -top-1 -right-1 text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center leading-none',
-              panelOpen ? 'bg-zinc-950 text-amber-400' : 'bg-amber-500 text-zinc-950',
+              panelOpen ? 'bg-zinc-950 text-cyan-400' : 'bg-cyan-400 text-zinc-950',
             ]"
           >{{ commentStore.comments.length }}</span>
         </button>

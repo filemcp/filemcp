@@ -11,8 +11,18 @@ if (error.value) {
   throw createError({ statusCode: 404, message: 'Version not found' })
 }
 
+const config = useRuntimeConfig()
+const fallbackOg = `${config.public.appUrl}/og.jpg`
+
 useSeoMeta({
-  title: () => `${data.value?.title ?? uuid} v${version} — filemcp`,
+  title: () => `${data.value?.title ?? uuid} v${version} — FileMCP`,
+  description: () => `Shared by ${org} on FileMCP — view and comment in the browser.`,
+  ogTitle: () => `${data.value?.title ?? uuid} (v${version})`,
+  ogDescription: () => `Shared by ${org} on FileMCP — view and comment in the browser.`,
+  ogImage: () => data.value?.currentVersion?.thumbnailUrl ?? fallbackOg,
+  twitterTitle: () => `${data.value?.title ?? uuid} (v${version})`,
+  twitterDescription: () => `Shared by ${org} on FileMCP`,
+  twitterImage: () => data.value?.currentVersion?.thumbnailUrl ?? fallbackOg,
 })
 </script>
 
