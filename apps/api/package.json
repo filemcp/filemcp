@@ -32,7 +32,7 @@
     "bcryptjs": "^3.0.3",
     "bullmq": "^5.30.0",
     "class-transformer": "^0.5.1",
-    "class-validator": "^0.14.1",
+    "class-validator": "^0.15.1",
     "cookie-parser": "^1.4.7",
     "mjml": "^5.1.0",
     "nanoid": "^5.0.0",
