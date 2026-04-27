@@ -102,7 +102,7 @@ watch(() => auth.activeOrg?.slug, () => {
 
       <template v-else>
         <!-- Step 1: API Key -->
-        <section class="relative p-[1px] rounded-xl bg-gradient-to-br from-cyan-500/50 via-zinc-700 to-cyan-500/30">
+        <section class="relative p-[1px] rounded-xl bg-gradient-to-br from-cyan-500/70 to-cyan-500/50">
           <div class="rounded-[11px] bg-zinc-950/95 backdrop-blur-sm p-6 space-y-4">
             <div class="flex items-start gap-3">
               <div class="text-xs font-mono text-cyan-400/80 tracking-widest mt-1">01</div>
@@ -137,7 +137,7 @@ watch(() => auth.activeOrg?.slug, () => {
         </section>
 
         <!-- Step 2: MCP Config -->
-        <section class="relative p-[1px] rounded-xl bg-gradient-to-br from-cyan-500/50 via-zinc-700 to-violet-500/50">
+        <section class="relative p-[1px] rounded-xl bg-gradient-to-br from-cyan-500/70 to-violet-500/70">
           <div class="rounded-[11px] bg-zinc-950/95 backdrop-blur-sm p-6 space-y-4">
             <div class="flex items-start gap-3">
               <div class="text-xs font-mono text-cyan-400/80 tracking-widest mt-1">02</div>
@@ -151,7 +151,7 @@ watch(() => auth.activeOrg?.slug, () => {
         </section>
 
         <!-- Step 3: Try it -->
-        <section class="relative p-[1px] rounded-xl bg-gradient-to-br from-violet-500/50 via-zinc-700 to-violet-500/30">
+        <section class="relative p-[1px] rounded-xl bg-gradient-to-br from-violet-500/70 to-violet-500/50">
           <div class="rounded-[11px] bg-zinc-950/95 backdrop-blur-sm p-6 space-y-4">
             <div class="flex items-start gap-3">
               <div class="text-xs font-mono text-violet-300/80 tracking-widest mt-1">03</div>

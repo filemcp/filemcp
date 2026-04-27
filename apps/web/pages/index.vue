@@ -164,11 +164,7 @@ const steps = [
     </section>
 
     <!-- ===== Get started — hosted vs self-host ===== -->
-    <section class="relative px-4 pt-12 pb-28 overflow-hidden">
-      <!-- Background ambient: cyan on the left, violet on the right -->
-      <div class="pointer-events-none absolute -top-10 left-0 w-[500px] h-[300px] rounded-full bg-cyan-500/[0.07] blur-[120px]" />
-      <div class="pointer-events-none absolute -top-10 right-0 w-[500px] h-[300px] rounded-full bg-violet-500/[0.07] blur-[120px]" />
-
+    <section class="relative px-4 pt-12 pb-28">
       <div class="relative max-w-5xl mx-auto space-y-12">
         <div class="text-center space-y-3">
           <h2 class="text-3xl sm:text-4xl font-semibold tracking-tight leading-[1.1] text-white">
