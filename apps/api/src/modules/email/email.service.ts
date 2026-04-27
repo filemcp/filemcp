@@ -79,6 +79,52 @@ export class EmailService implements OnModuleInit {
     })
   }
 
+  async sendAssetShared(opts: {
+    to: string
+    senderName: string
+    assetTitle: string
+    assetUrl: string
+    note?: string
+    viewMode: 'comments' | 'view'
+  }) {
+    const introLine =
+      opts.viewMode === 'view'
+        ? 'They sent you a read-only link — open it to view the asset in your browser.'
+        : "They sent you a link to view the asset and leave inline comments — no account required."
+
+    const notePartial = opts.note
+      ? `<mj-section padding-top="20px">
+           <mj-column>
+             <mj-text color="#fafafa" font-size="15px" line-height="1.6">
+               <div style="border-left: 2px solid #06b6d4; padding: 4px 0 4px 14px; font-style: italic;">${this.escapeHtml(opts.note)}</div>
+             </mj-text>
+           </mj-column>
+         </mj-section>`
+      : ''
+
+    return this.send({
+      to: opts.to,
+      subject: `${opts.senderName} shared "${opts.assetTitle}" on FileMCP`,
+      template: 'asset-shared',
+      vars: {
+        senderName: opts.senderName,
+        assetTitle: opts.assetTitle,
+        assetUrl: opts.assetUrl,
+        introLine,
+        notePartial,
+      },
+    })
+  }
+
+  private escapeHtml(s: string): string {
+    return s
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;')
+  }
+
   async send(opts: SendOptions): Promise<void> {
     const html = await this.render(opts.template, opts.vars)
     const text = opts.text ?? this.htmlToText(html)
@@ -141,13 +187,11 @@ export class EmailService implements OnModuleInit {
 
   private async render(template: string, vars: Vars): Promise<string> {
     const file = path.join(__dirname, 'templates', `${template}.mjml`)
-    const source = fs.readFileSync(file, 'utf8')
-    const result = await mjml2html(source, { validationLevel: 'soft' })
-    if (result.errors.length > 0) {
-      this.logger.warn(
-        `MJML warnings in ${template}: ${result.errors.map((e: { message: string }) => e.message).join(', ')}`,
-      )
-    }
+    let source = fs.readFileSync(file, 'utf8')
+
+    // Substitute tokens BEFORE compiling so partials containing MJML markup
+    // (e.g. notePartial in asset-shared) get compiled along with the rest.
+    // Keys ending with "Partial" are treated as raw MJML; everything else is HTML-escaped.
     const allVars: Vars = {
       appUrl: this.appUrl,
       // Reference the logo via its Content-ID — set as an inline MIME attachment in send()
@@ -155,10 +199,19 @@ export class EmailService implements OnModuleInit {
       year: new Date().getFullYear(),
       ...vars,
     }
-    return Object.entries(allVars).reduce(
-      (html, [key, value]) => html.replaceAll(`{{${key}}}`, String(value)),
-      result.html,
-    )
+    for (const [key, value] of Object.entries(allVars)) {
+      const stringified = String(value)
+      const replacement = key.endsWith('Partial') ? stringified : this.escapeHtml(stringified)
+      source = source.replaceAll(`{{${key}}}`, replacement)
+    }
+
+    const result = await mjml2html(source, { validationLevel: 'soft' })
+    if (result.errors.length > 0) {
+      this.logger.warn(
+        `MJML warnings in ${template}: ${result.errors.map((e: { message: string }) => e.message).join(', ')}`,
+      )
+    }
+    return result.html
   }
 
   // Build a multipart/related raw MIME message with HTML body + plain-text alternative + inline attachment(s).

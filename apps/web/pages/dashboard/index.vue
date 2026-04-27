@@ -11,7 +11,7 @@ const { data, pending, refresh } = useApi<{ items: any[]; total: number }>(
 watch(() => auth.activeOrg?.slug, () => refresh())
 
 const visibilityOpen = ref<string | null>(null)
-const shareAsset = ref<{ id: string; org: string; uuid: string } | null>(null)
+const shareAsset = ref<{ id: string; org: string; uuid: string; title: string } | null>(null)
 
 const VISIBILITY_OPTIONS = [
   { value: 'PUBLIC',  label: 'Public',  desc: 'Anyone can view' },
@@ -143,7 +143,7 @@ if (import.meta.client) {
             <div class="flex gap-2 items-center">
               <button
                 class="flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg border border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-white transition"
-                @click="shareAsset = { id: asset.id, org: asset.owner.org, uuid: asset.uuid }"
+                @click="shareAsset = { id: asset.id, org: asset.owner.org, uuid: asset.uuid, title: asset.title ?? asset.slug }"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/>
@@ -166,6 +166,9 @@ if (import.meta.client) {
       v-if="shareAsset"
       :org="shareAsset.org"
       :uuid="shareAsset.uuid"
+      :asset-id="shareAsset.id"
+      :org-slug="shareAsset.org"
+      :asset-title="shareAsset.title"
       @close="shareAsset = null"
     />
   </div>
