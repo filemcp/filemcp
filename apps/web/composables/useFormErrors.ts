@@ -15,7 +15,10 @@ export function useFormErrors() {
         if (typeof m !== 'string') continue
         const match = m.match(/^(\w+)\s/)
         if (match) {
-          const field = match[1]
+          // Custom messages may capitalize the field for readability ("Username must…"),
+          // but DTO field names are camelCase, so lowercase the first letter to match.
+          const raw = match[1]
+          const field = raw[0].toLowerCase() + raw.slice(1)
           ;(fieldErrors.value[field] ??= []).push(m)
         } else {
           topError.value = topError.value ? `${topError.value}\n${m}` : m
