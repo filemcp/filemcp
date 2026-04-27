@@ -1,0 +1,37 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* Slim brand scrollbars — zinc thumb at rest, cyan→violet gradient on hover. */
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  *::-webkit-scrollbar-thumb {
+    background-color: rgb(82 82 91 / 0.55); /* zinc-600 / 55% */
+    border-radius: 9999px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+    transition: background-color 200ms;
+  }
+  *::-webkit-scrollbar-thumb:hover {
+    background-image: linear-gradient(180deg, #06b6d4 0%, #8b5cf6 100%);
+    background-color: #06b6d4;
+  }
+  *::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+  *::-webkit-scrollbar-button {
+    display: none;
+  }
+
+  /* Firefox */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(82 82 91 / 0.55) transparent;
+  }
+}
