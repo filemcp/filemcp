@@ -15,6 +15,9 @@ dist/
 .nuxt/
 coverage/
 
+# Email dev preview (rendered HTML written by EmailService in dry-run mode)
+apps/api/tmp/
+
 # Logs
 *.log
 npm-debug.log*
