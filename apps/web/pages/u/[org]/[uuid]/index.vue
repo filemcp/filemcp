@@ -11,6 +11,7 @@ if (error.value) {
 }
 
 useSeoMeta({
+  robots: 'noindex, nofollow',
   title: () => `${data.value?.title ?? uuid} — filemcp`,
   ogTitle: () => data.value?.title ?? uuid,
   description: () => `Shared by ${org} on filemcp`,
