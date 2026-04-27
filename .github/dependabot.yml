@@ -1,0 +1,71 @@
+version: 2
+updates:
+  # JavaScript / TypeScript dependencies (pnpm workspace)
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Europe/Berlin"
+    open-pull-requests-limit: 10
+    labels:
+      - "type:chore"
+      - "area:deps"
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+    groups:
+      # Bundle minor + patch updates by ecosystem to keep PR noise down
+      nestjs:
+        patterns:
+          - "@nestjs/*"
+        update-types: ["minor", "patch"]
+      nuxt-vue:
+        patterns:
+          - "nuxt"
+          - "@nuxt/*"
+          - "@nuxtjs/*"
+          - "vue"
+          - "@vue/*"
+          - "@pinia/*"
+          - "pinia"
+        update-types: ["minor", "patch"]
+      aws-sdk:
+        patterns:
+          - "@aws-sdk/*"
+        update-types: ["minor", "patch"]
+      prisma:
+        patterns:
+          - "prisma"
+          - "@prisma/*"
+        update-types: ["minor", "patch"]
+      dev-tooling:
+        patterns:
+          - "typescript"
+          - "vitest"
+          - "jest"
+          - "@types/*"
+          - "tsx"
+          - "@vitejs/*"
+        update-types: ["minor", "patch"]
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "type:chore"
+      - "area:ci"
+    commit-message:
+      prefix: "ci"
+
+  # Docker base images in Dockerfiles
+  - package-ecosystem: "docker"
+    directory: "/apps/worker"
+    schedule:
+      interval: "monthly"
+    labels:
+      - "type:chore"
+      - "area:infra"
