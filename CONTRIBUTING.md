@@ -2,7 +2,7 @@
 
 Thanks for your interest in contributing. This document covers how to set up a local dev environment, the code conventions we follow, and how to get a change merged.
 
-If you're stuck or unsure, ask in **[Discord](https://discord.gg/filemcp)** or open a **[Discussion](https://github.com/filemcp/filemcp/discussions)** — both work.
+If you're stuck or unsure, ask in **[Discord](https://discord.gg/hRVhz5WTpe)** or open a **[Discussion](https://github.com/filemcp/filemcp/discussions)** — both work.
 
 ## Ways to contribute
 

@@ -153,4 +153,4 @@ We'll fill these in as the self-host community grows. PRs welcome.
 
 ## Help
 
-If your deployment hits something this guide doesn't cover, ask in [Discord](https://discord.gg/filemcp) or open a [Discussion](https://github.com/filemcp/filemcp/discussions). We try to fold answers back into this guide.
+If your deployment hits something this guide doesn't cover, ask in [Discord](https://discord.gg/hRVhz5WTpe) or open a [Discussion](https://github.com/filemcp/filemcp/discussions). We try to fold answers back into this guide.

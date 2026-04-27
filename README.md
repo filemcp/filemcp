@@ -8,7 +8,7 @@
     <a href="LICENSE"><img alt="License" src="https://img.shields.io/badge/license-MIT-22d3ee" /></a>
     <a href="https://github.com/filemcp/filemcp/actions"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/filemcp/filemcp/test.yml?branch=main" /></a>
     <a href="https://github.com/filemcp/filemcp/stargazers"><img alt="Stars" src="https://img.shields.io/github/stars/filemcp/filemcp?style=flat&color=a78bfa" /></a>
-    <a href="https://discord.gg/filemcp"><img alt="Discord" src="https://img.shields.io/discord/0?label=discord&color=5865F2" /></a>
+    <a href="https://discord.gg/hRVhz5WTpe"><img alt="Discord" src="https://img.shields.io/discord/0?label=discord&color=5865F2" /></a>
   </p>
 
   <p>
@@ -147,7 +147,7 @@ For security issues please follow [SECURITY.md](SECURITY.md) — don't open a pu
 
 ## Community
 
-- **Discord** — [discord.gg/filemcp](https://discord.gg/filemcp) (support, ideas, hangout)
+- **[Discord](https://discord.gg/hRVhz5WTpe)** — support, ideas, hangout
 - **Discussions** — [GitHub Discussions](https://github.com/filemcp/filemcp/discussions) (longer-form Q&A, RFCs)
 - **Issues** — [GitHub Issues](https://github.com/filemcp/filemcp/issues) (bugs and feature requests)
 
