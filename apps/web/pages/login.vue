@@ -73,7 +73,16 @@ async function submit() {
             :class="[inputBase, fieldErrors.password ? inputErr : inputOk]"
             @input="clearField('password')"
           />
-          <p v-if="fieldErrors.password" class="text-red-400 text-xs mt-1.5 px-1">{{ fieldErrors.password[0] }}</p>
+          <div class="flex justify-between items-start mt-1.5 px-1 gap-2">
+            <p v-if="fieldErrors.password" class="text-red-400 text-xs">{{ fieldErrors.password[0] }}</p>
+            <span v-else />
+            <NuxtLink
+              to="/forgot-password"
+              class="text-zinc-400 hover:text-cyan-300 text-xs transition shrink-0"
+            >
+              Forgot password?
+            </NuxtLink>
+          </div>
         </div>
         <p v-if="topError" class="text-red-400 text-sm">{{ topError }}</p>
         <button
@@ -83,11 +92,6 @@ async function submit() {
         >
           {{ loading ? 'Signing in…' : 'Sign in' }}
         </button>
-        <p class="text-center">
-          <NuxtLink to="/forgot-password" class="text-zinc-500 hover:text-zinc-300 text-xs transition">
-            Forgot password?
-          </NuxtLink>
-        </p>
       </form>
       <p class="text-zinc-500 text-sm text-center">
         No account?
