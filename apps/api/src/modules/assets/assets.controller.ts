@@ -20,11 +20,14 @@ import { ConfigService } from '@nestjs/config'
 import { FileInterceptor } from '@nestjs/platform-express'
 import { ApiTags, ApiBearerAuth, ApiConsumes } from '@nestjs/swagger'
 import { OrgRole } from '@prisma/client'
+import { Throttle } from '@nestjs/throttler'
 import { AssetsService } from './assets.service'
 import { UploadAssetDto } from './dto/upload-asset.dto'
 import { UpdateAssetDto } from './dto/update-asset.dto'
+import { ShareAssetDto } from './dto/share-asset.dto'
 import { AnyAuthGuard } from '../auth/guards/any-auth.guard'
 import { OrgRoleGuard, AuthUser } from '../auth/guards/org-role.guard'
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
 import { RequireOrgRole } from '../auth/decorators/require-org-role.decorator'
 
 @ApiTags('assets')
@@ -95,5 +98,22 @@ export class AssetsController {
     @Request() req: { user: AuthUser },
   ) {
     return this.assets.delete(req.user.orgId!, id)
+  }
+
+  // Send the asset's link to a recipient via email. JWT-only (no API keys) so we're not used as a spam relay.
+  // Rate-limited to 20/hour per user.
+  @Post(':id/share')
+  @UseGuards(JwtAuthGuard, OrgRoleGuard)
+  @RequireOrgRole(OrgRole.READ)
+  @Throttle({ default: { limit: 20, ttl: 60 * 60 * 1000 } })
+  @HttpCode(200)
+  async share(
+    @Param('slug') _slug: string,
+    @Param('id') id: string,
+    @Request() req: { user: AuthUser },
+    @Body() dto: ShareAssetDto,
+  ) {
+    await this.assets.shareLink(req.user.orgId!, req.user.id, id, dto)
+    return { ok: true }
   }
 }

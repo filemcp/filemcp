@@ -55,6 +55,7 @@ onMounted(() => commentStore.setPendingAnchor(null))
 onUnmounted(() => commentStore.setPendingAnchor(null))
 
 const htmlRendererRef = ref<{ print: () => void } | null>(null)
+const shareOpen = ref(false)
 
 function printAsset() {
   if (props.asset.currentVersion.fileType === 'HTML') {
@@ -95,6 +96,17 @@ function printAsset() {
         >
           <option v-for="v in asset.latestVersion" :key="v" :value="v">v{{ v }}</option>
         </select>
+
+        <!-- Share button -->
+        <button
+          class="p-2 rounded bg-zinc-800 text-zinc-300 hover:bg-zinc-700 transition"
+          title="Share"
+          @click="shareOpen = true"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/>
+          </svg>
+        </button>
 
         <!-- Print button -->
         <button
@@ -184,5 +196,15 @@ function printAsset() {
         @refresh="refreshComments"
       />
     </div>
+
+    <ShareModal
+      v-if="shareOpen"
+      :org="asset.owner.org"
+      :uuid="asset.uuid"
+      :asset-id="asset.assetId"
+      :org-slug="asset.owner.org"
+      :asset-title="asset.title"
+      @close="shareOpen = false"
+    />
   </div>
 </template>

@@ -14,6 +14,7 @@ import { PrismaService } from '../../prisma/prisma.service'
 import { StorageService } from '../storage/storage.service'
 import { RenderService } from '../render/render.service'
 import { ThumbnailService } from '../thumbnail/thumbnail.service'
+import { EmailService } from '../email/email.service'
 
 const mockStorage = {
   upload: jest.fn().mockResolvedValue(undefined),
@@ -24,6 +25,7 @@ const mockStorage = {
 }
 const mockRender = { markdownToHtml: jest.fn().mockResolvedValue('<p>ok</p>') }
 const mockThumbnail = { enqueue: jest.fn().mockResolvedValue(undefined) }
+const mockEmail = { sendAssetShared: jest.fn().mockResolvedValue(undefined) }
 
 async function buildService() {
   const module = await Test.createTestingModule({
@@ -33,6 +35,7 @@ async function buildService() {
       { provide: StorageService, useValue: mockStorage },
       { provide: RenderService, useValue: mockRender },
       { provide: ThumbnailService, useValue: mockThumbnail },
+      { provide: EmailService, useValue: mockEmail },
     ],
   }).compile()
 
