@@ -240,11 +240,14 @@ export class AssetsService {
       ? `/api/public/${orgSlug}/${uuid}/v/${versionNumber}/content`
       : `/api/public/${orgSlug}/${uuid}/content`
 
-    const isOwnerMember = requestingUserId
-      ? await this.prisma.orgMember.findFirst({ where: { orgId: asset.orgId, userId: requestingUserId } }).then(Boolean)
-      : false
+    const membership = requestingUserId
+      ? await this.prisma.orgMember.findFirst({ where: { orgId: asset.orgId, userId: requestingUserId }, select: { role: true } })
+      : null
 
-    const updated = isOwnerMember
+    const isMember = !!membership
+    const isOwner = membership?.role === 'OWNER'
+
+    const updated = isMember
       ? await this.prisma.asset.findUnique({ where: { id: asset.id }, select: { viewCount: true } }) ?? { viewCount: asset.viewCount }
       : await this.prisma.asset.update({
           where: { id: asset.id },
@@ -270,7 +273,8 @@ export class AssetsService {
       commentCount: asset._count.comments,
       viewCount: updated.viewCount,
       visibility: asset.visibility,
-      isOwner: isOwnerMember,
+      isOwner,
+      isMember,
     }
   }
 

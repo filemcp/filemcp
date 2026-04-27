@@ -1,7 +1,8 @@
 <script setup lang="ts">
 const props = defineProps<{
-  anchor: { xPct: number; yPct: number; selectorHint: string }
+  anchor: { xPct: number; yPct: number; viewXPct: number; viewYPct: number; selectorHint: string }
   assetId: string
+  versionId: string
 }>()
 
 const emit = defineEmits<{
@@ -16,9 +17,12 @@ const anonEmail = ref('')
 const submitting = ref(false)
 const nudge = ref<{ message: string; signupUrl: string } | null>(null)
 const errors = ref({ body: false, anonName: false })
+const textareaRef = ref<HTMLTextAreaElement>()
 
-const left = computed(() => `${Math.min(props.anchor.xPct * 100, 75)}%`)
-const top = computed(() => `${Math.min(props.anchor.yPct * 100, 80)}%`)
+onMounted(() => nextTick(() => textareaRef.value?.focus()))
+
+const left = computed(() => `${Math.min(props.anchor.viewXPct * 100, 75)}%`)
+const top = computed(() => `${Math.min(props.anchor.viewYPct * 100, 80)}%`)
 
 async function submit() {
   errors.value.body = !body.value.trim()
@@ -28,6 +32,7 @@ async function submit() {
   try {
     const payload: any = {
       body: body.value,
+      versionId: props.versionId,
       anchorType: 'POSITION',
       xPct: props.anchor.xPct,
       yPct: props.anchor.yPct,
@@ -90,12 +95,12 @@ function dismissNudge() {
     <!-- Compose state -->
     <template v-else>
       <textarea
+        ref="textareaRef"
         v-model="body"
         rows="3"
         placeholder="Leave a comment…"
         class="w-full bg-zinc-800 text-zinc-200 text-sm rounded-lg px-3 py-2 resize-none focus:outline-none focus:ring-1"
         :class="errors.body ? 'ring-1 ring-red-500 focus:ring-red-500' : 'focus:ring-zinc-600'"
-        autofocus
         @input="errors.body = false"
       />
 

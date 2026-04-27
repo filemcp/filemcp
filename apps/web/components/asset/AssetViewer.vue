@@ -11,6 +11,7 @@ const props = defineProps<{
     owner: { org: string }
     latestVersion: number
     currentVersion: {
+      id: string
       number: number
       fileType: string
       contentUrl: string
@@ -20,6 +21,7 @@ const props = defineProps<{
     viewCount: number
     visibility: string
     isOwner: boolean
+    isMember: boolean
   }
 }>()
 
@@ -44,7 +46,7 @@ const { data: commentsData, refresh: refreshComments } = await useApi<Comment[]>
 commentStore.setComments(commentsData.value ?? [])
 watch(commentsData, (val) => commentStore.setComments(val ?? []))
 
-function handleViewerClick(event: { xPct: number; yPct: number; selectorHint: string }) {
+function handleViewerClick(event: { xPct: number; yPct: number; viewXPct: number; viewYPct: number; selectorHint: string }) {
   if (!commentStore.commentMode) return
   commentStore.setPendingAnchor(event)
 }
@@ -86,6 +88,7 @@ function printAsset() {
 
         <!-- Version selector -->
         <select
+          v-if="asset.isOwner || asset.isMember"
           class="bg-zinc-900 border border-zinc-700 rounded px-2 py-1 text-sm text-zinc-300"
           :value="asset.currentVersion.number"
           @change="(e) => navigateTo(`/u/${asset.owner.org}/${asset.uuid}/v/${(e.target as HTMLSelectElement).value}`)"
@@ -166,6 +169,7 @@ function printAsset() {
           v-if="!viewMode && commentStore.pendingAnchor"
           :anchor="commentStore.pendingAnchor"
           :asset-id="asset.assetId"
+          :version-id="asset.currentVersion.id"
           @submitted="() => { commentStore.setPendingAnchor(null); refreshComments() }"
           @cancel="commentStore.setPendingAnchor(null)"
         />

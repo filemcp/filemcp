@@ -15,15 +15,11 @@ export class StorageService {
   private bucket: string
   private publicUrl: string
   private internalEndpoint: string | undefined
-  private publicEndpoint: string | undefined
 
   constructor(private config: ConfigService) {
     this.bucket = config.getOrThrow('S3_BUCKET')
     this.publicUrl = config.getOrThrow('S3_PUBLIC_URL')
     this.internalEndpoint = config.get('S3_ENDPOINT')
-    // S3_PUBLIC_ENDPOINT is the browser-accessible MinIO URL (e.g. http://localhost:9000)
-    // Falls back to S3_ENDPOINT if not set (works when API and browser share the same network)
-    this.publicEndpoint = config.get('S3_PUBLIC_ENDPOINT') ?? this.internalEndpoint
 
     this.client = new S3Client({
       endpoint: this.internalEndpoint,
