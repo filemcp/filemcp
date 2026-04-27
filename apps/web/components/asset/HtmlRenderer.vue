@@ -104,8 +104,9 @@ function pinViewportPos(xPct: number, yPct: number) {
     @click="handleOverlayClick"
   >
     <iframe
+      v-if="blobSrc"
       ref="iframeRef"
-      :src="blobSrc || contentUrl"
+      :src="blobSrc"
       sandbox="allow-scripts allow-modals"
       class="w-full h-full border-0 bg-white"
       title="Asset content"
