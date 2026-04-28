@@ -22,9 +22,8 @@ useSeoMeta({
   twitterImageAlt: 'FileMCP — Turn AI-generated work into shareable links',
 })
 
-// Drop demo.mp4 into apps/web/public/ then flip hasDemoVideo to true
 const hasDemoVideo = true
-const demoVideoSrc = '/demo.mp4'
+const demoVideoSrc = '/filemcp.mp4'
 const demoPosterSrc = '/icon.png'
 
 const steps = [
@@ -126,6 +125,13 @@ const steps = [
             class="relative w-full aspect-video rounded-2xl border border-zinc-800 bg-zinc-900 shadow-2xl shadow-black/60"
           >
             <source :src="demoVideoSrc" type="video/mp4" />
+            <track
+              kind="subtitles"
+              label="English"
+              srclang="en"
+              src="/filemcp.en.vtt"
+              default
+            />
             Your browser does not support the video tag.
           </video>
           <div
