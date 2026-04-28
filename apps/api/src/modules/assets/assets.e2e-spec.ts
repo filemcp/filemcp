@@ -4,6 +4,7 @@ jest.mock('../render/render.service', () => ({
   },
 }))
 
+import { randomUUID } from 'crypto'
 import request from 'supertest'
 import { INestApplication } from '@nestjs/common'
 import { createTestApp } from '../../test/app.factory'
@@ -30,10 +31,11 @@ describe('AssetsController (e2e)', () => {
     return Buffer.from('<h1>Test</h1>')
   }
 
-  describe('POST /api/orgs/:slug/assets', () => {
+  describe('POST /api/orgs/:slug/assets/:uuid/versions', () => {
     it('201 — uploads a file and returns url', async () => {
+      const uuid = randomUUID()
       const res = await request(app.getHttpServer())
-        .post(`/api/orgs/${user.orgSlug}/assets`)
+        .post(`/api/orgs/${user.orgSlug}/assets/${uuid}/versions`)
         .set(authHeader(user.token))
         .attach('file', htmlBuffer(), { filename: 'deck.html', contentType: 'text/html' })
         .expect(201)
@@ -44,7 +46,7 @@ describe('AssetsController (e2e)', () => {
 
     it('401 — no auth', async () => {
       await request(app.getHttpServer())
-        .post(`/api/orgs/${user.orgSlug}/assets`)
+        .post(`/api/orgs/${user.orgSlug}/assets/${randomUUID()}/versions`)
         .attach('file', htmlBuffer(), { filename: 'deck.html', contentType: 'text/html' })
         .expect(401)
     })
@@ -52,7 +54,7 @@ describe('AssetsController (e2e)', () => {
     it('403 — user is not a member of the org', async () => {
       const other = await createUser(app)
       await request(app.getHttpServer())
-        .post(`/api/orgs/${user.orgSlug}/assets`)
+        .post(`/api/orgs/${user.orgSlug}/assets/${randomUUID()}/versions`)
         .set(authHeader(other.token))
         .attach('file', htmlBuffer(), { filename: 'deck.html', contentType: 'text/html' })
         .expect(403)
@@ -79,7 +81,7 @@ describe('AssetsController (e2e)', () => {
   describe('DELETE /api/orgs/:slug/assets/:id', () => {
     it('204 — deletes the asset', async () => {
       const upload = await request(app.getHttpServer())
-        .post(`/api/orgs/${user.orgSlug}/assets`)
+        .post(`/api/orgs/${user.orgSlug}/assets/${randomUUID()}/versions`)
         .set(authHeader(user.token))
         .attach('file', htmlBuffer(), { filename: 'to-delete.html', contentType: 'text/html' })
         .expect(201)
