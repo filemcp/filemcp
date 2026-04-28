@@ -62,7 +62,7 @@ gtag('config', 'G-PWPG88HHHM');`,
   routeRules: {
     '/dashboard/**': { ssr: false },
     '/u/**': { ssr: true },
-    '/': { prerender: true },
+    '/': { ssr: true },
     '/api/**': { proxy: `${process.env.NUXT_API_URL ?? 'http://localhost/api'}/**` },
   },
 
