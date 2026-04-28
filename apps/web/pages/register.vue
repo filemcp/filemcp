@@ -1,6 +1,10 @@
 <script setup lang="ts">
 definePageMeta({ middleware: 'guest' })
 
+useSeoMeta({
+  title: 'Create account — FileMCP',
+})
+
 const route = useRoute()
 const auth = useAuthStore()
 const inviteToken = computed(() => (route.query.invite as string) ?? null)
