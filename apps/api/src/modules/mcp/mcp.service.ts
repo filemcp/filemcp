@@ -76,10 +76,10 @@ const TOOLS = [
     inputSchema: {
       type: 'object',
       properties: {
-        slug: { type: 'string', description: 'Asset slug' },
+        uuid: { type: 'string', description: 'Asset UUID' },
         version: { type: 'number', description: 'Version number (omit for latest)' },
       },
-      required: ['slug'],
+      required: ['uuid'],
     },
   },
   {
@@ -89,7 +89,7 @@ const TOOLS = [
     inputSchema: {
       type: 'object',
       properties: {
-        slug: { type: 'string', description: 'Asset slug' },
+        uuid: { type: 'string', description: 'Asset UUID' },
         unresolved_only: {
           type: 'boolean',
           description: 'If true, only return unresolved comments (default: false).',
@@ -100,7 +100,7 @@ const TOOLS = [
             'Only return comments made on this version number or later. Useful after publishing a new version to see what feedback came in on it.',
         },
       },
-      required: ['slug'],
+      required: ['uuid'],
     },
   },
 ]
@@ -247,13 +247,13 @@ export class McpService {
     }
 
     if (name === 'get_asset') {
-      const { slug, version } = args
+      const { uuid, version } = args
 
-      const assetRecord = await this.prisma.asset.findFirst({
-        where: { orgId, slug },
+      const assetRecord = await this.prisma.asset.findUnique({
+        where: { uuid },
         include: { versions: { orderBy: { number: 'desc' }, take: 1 } },
       })
-      if (!assetRecord) throw new Error(`Asset not found: ${slug}`)
+      if (!assetRecord) throw new Error(`Asset not found: ${uuid}`)
 
       const { data } = await this.assets.streamContent(orgSlug, assetRecord.uuid, version, req.user.id)
       const text = data.toString('utf8')
@@ -266,7 +266,7 @@ export class McpService {
           {
             type: 'text',
             text: [
-              `Content of "${slug}"${version ? ` (v${version})` : ' (latest)'}:`,
+              `Content of "${assetRecord.slug}"${version ? ` (v${version})` : ' (latest)'}:`,
               '',
               text,
               '',
@@ -282,12 +282,12 @@ export class McpService {
     }
 
     if (name === 'read_asset_comments') {
-      const { slug, unresolved_only, since_version } = args
+      const { uuid, unresolved_only, since_version } = args
       const asset = await this.prisma.asset.findUnique({
-        where: { orgId_slug: { orgId, slug } },
+        where: { uuid },
       })
       if (!asset) {
-        return { content: [{ type: 'text', text: `No asset found with slug "${slug}".` }] }
+        return { content: [{ type: 'text', text: `No asset found with UUID "${uuid}".` }] }
       }
 
       const comments = await this.comments.list(
@@ -304,13 +304,13 @@ export class McpService {
         const filterNote = filters.length ? ` (${filters.join(', ')})` : ''
         return {
           content: [
-            { type: 'text', text: `No comments on "${asset.title}" (slug: ${slug})${filterNote}.` },
+            { type: 'text', text: `No comments on "${asset.title}" (slug: ${asset.slug})${filterNote}.` },
           ],
         }
       }
 
       return {
-        content: [{ type: 'text', text: this.formatComments(asset.title, slug, comments) }],
+        content: [{ type: 'text', text: this.formatComments(asset.title, asset.slug, comments) }],
       }
     }
 
