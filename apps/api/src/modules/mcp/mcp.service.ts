@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { Injectable } from '@nestjs/common'
+import { Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import type { Request, Response } from 'express'
 import { OrgRole } from '@prisma/client'
@@ -120,6 +120,8 @@ const MIME_TYPES: Record<string, string> = {
 
 @Injectable()
 export class McpService {
+  private readonly logger = new Logger(McpService.name)
+
   constructor(
     private assets: AssetsService,
     private comments: CommentsService,
@@ -131,7 +133,7 @@ export class McpService {
     const body = req.body
     const { method, params, id } = body
 
-    console.log('[MCP]', method, id != null ? `id=${id}` : '(notification)')
+    this.logger.debug(`${method} ${id != null ? `id=${id}` : '(notification)'}`)
 
     if (id == null) {
       res.status(202).set('Connection', 'close').end()
@@ -142,7 +144,7 @@ export class McpService {
       const result = await this.dispatch(method, params, req)
       res.set('Connection', 'close').json({ jsonrpc: '2.0', id, result })
     } catch (err: any) {
-      console.error('[MCP] error in', method, err?.message)
+      this.logger.error(`error in ${method}: ${err?.message}`)
       res.set('Connection', 'close').json({
         jsonrpc: '2.0',
         id,
@@ -196,7 +198,7 @@ export class McpService {
 
       const cmd = `curl -s -X POST "${apiBase}/orgs/${orgSlug}/assets/${asset_uuid}/versions" -H "Authorization: ${token}" -H "X-Upload-Source: mcp" -F "file=@${filepath};type=${mime}"`
 
-      console.log('[MCP] upload_asset curl', { filepath, filename, orgSlug, asset_uuid, isNew })
+      this.logger.debug(`upload_asset curl ${JSON.stringify({ filepath, filename, orgSlug, asset_uuid, isNew })}`)
 
       return {
         content: [

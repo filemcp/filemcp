@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException, ConflictException, BadRequestException } from '@nestjs/common'
+import { Injectable, UnauthorizedException, ConflictException, BadRequestException, Logger } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 import { ConfigService } from '@nestjs/config'
 import * as bcrypt from 'bcryptjs'
@@ -13,6 +13,8 @@ const PASSWORD_RESET_TOKEN_TTL_MIN = 60
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name)
+
   constructor(
     private prisma: PrismaService,
     private jwt: JwtService,
@@ -62,7 +64,7 @@ export class AuthService {
         await this.invitations.accept(dto.inviteToken, user.id)
       } catch (err: any) {
         // Don't fail registration — they still got their personal org. Log and move on.
-        console.warn(`Auto-accept invitation failed for ${user.email}: ${err?.message ?? err}`)
+        this.logger.warn(`Auto-accept invitation failed for ${user.email}: ${err?.message ?? err}`)
       }
     }
 
