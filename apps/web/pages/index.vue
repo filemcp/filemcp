@@ -1,12 +1,5 @@
 <script setup lang="ts">
-definePageMeta({ layout: false })
-
-const auth = useAuthStore()
-if (auth.isAuthenticated) {
-  await navigateTo('/dashboard', { replace: true })
-} else {
-  setPageLayout('marketing')
-}
+definePageMeta({ layout: 'marketing', middleware: 'guest' })
 
 const config = useRuntimeConfig()
 const ogImageUrl = `${config.public.appUrl}/og.jpg`
