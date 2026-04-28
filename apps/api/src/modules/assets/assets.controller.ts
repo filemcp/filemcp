@@ -40,23 +40,6 @@ export class AssetsController {
     private config: ConfigService,
   ) {}
 
-  @Post()
-  @RequireOrgRole(OrgRole.WRITE)
-  @ApiConsumes('multipart/form-data')
-  @UseInterceptors(FileInterceptor('file'))
-  upload(
-    @Param('slug') _slug: string,
-    @Request() req: { user: AuthUser },
-    @UploadedFile() file: Express.Multer.File,
-    @Body() dto: UploadAssetDto,
-    @Headers('x-upload-source') uploadSource?: string,
-  ) {
-    const options = uploadSource === 'mcp'
-      ? { maxBytes: parseInt(this.config.get('MCP_MAX_FILE_SIZE_MB', '5'), 10) * 1024 * 1024 }
-      : undefined
-    return this.assets.upload(req.user.orgId!, req.user.id, file, dto, options)
-  }
-
   @Get()
   @RequireOrgRole(OrgRole.READ)
   list(
@@ -66,6 +49,24 @@ export class AssetsController {
     @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
   ) {
     return this.assets.listByOrg(req.user.orgId!, page, Math.min(limit, 100))
+  }
+
+  @Post(':id/versions')
+  @RequireOrgRole(OrgRole.WRITE)
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(FileInterceptor('file'))
+  uploadVersion(
+    @Param('slug') _slug: string,
+    @Param('id') uuid: string,
+    @Request() req: { user: AuthUser },
+    @UploadedFile() file: Express.Multer.File,
+    @Body() dto: UploadAssetDto,
+    @Headers('x-upload-source') uploadSource?: string,
+  ) {
+    const options = uploadSource === 'mcp'
+      ? { maxBytes: parseInt(this.config.get('MCP_MAX_FILE_SIZE_MB', '5'), 10) * 1024 * 1024 }
+      : undefined
+    return this.assets.uploadVersion(req.user.orgId!, req.user.id, uuid, file, dto, options)
   }
 
   @Get(':id')

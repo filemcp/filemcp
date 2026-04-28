@@ -8,6 +8,7 @@ jobs:
   backend:
     name: Backend (Jest)
     runs-on: ubuntu-latest
+    container: node:22
 
     services:
       postgres:
@@ -16,8 +17,6 @@ jobs:
           POSTGRES_USER: filemcp
           POSTGRES_PASSWORD: filemcp
           POSTGRES_DB: filemcp_test
-        ports:
-          - 5432:5432
         options: >-
           --health-cmd pg_isready
           --health-interval 5s
@@ -31,11 +30,6 @@ jobs:
         with:
           version: 10
 
-      - uses: actions/setup-node@v6
-        with:
-          node-version: 22
-          cache: pnpm
-
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
@@ -45,11 +39,14 @@ jobs:
 
       - name: Run tests
         working-directory: apps/api
+        env:
+          DB_HOST: postgres
         run: pnpm test --forceExit --ci
 
   frontend:
     name: Frontend (Vitest)
     runs-on: ubuntu-latest
+    container: node:22
 
     steps:
       - uses: actions/checkout@v6
@@ -57,11 +54,6 @@ jobs:
       - uses: pnpm/action-setup@v6
         with:
           version: 10
-
-      - uses: actions/setup-node@v6
-        with:
-          node-version: 22
-          cache: pnpm
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
