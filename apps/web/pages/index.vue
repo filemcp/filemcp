@@ -4,7 +4,7 @@ definePageMeta({ layout: 'marketing', middleware: 'guest' })
 const config = useRuntimeConfig()
 const ogImageUrl = `${config.public.appUrl}/og.jpg`
 const description =
-  'Publish AI-generated HTML, Markdown, and JSON to a shareable link. Inline comments and version history built in. Your agent ships, your team comments, your agent revises.'
+  'Publish AI-generated HTML and Markdown as a shareable link. Inline comments and version history built in. Your agent ships, your team comments, your agent revises.'
 
 useSeoMeta({
   title: 'FileMCP — AI-native publishing for generated work',
