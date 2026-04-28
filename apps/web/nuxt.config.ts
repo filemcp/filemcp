@@ -1,3 +1,7 @@
+const appUrl = process.env.NUXT_PUBLIC_APP_URL ?? process.env.APP_URL ?? ''
+const defaultOgImage = `${appUrl}/og.jpg`
+const defaultOgAlt = 'FileMCP — Turn AI-generated work into shareable links'
+
 export default defineNuxtConfig({
   devtools: { enabled: false },
 
@@ -14,7 +18,14 @@ export default defineNuxtConfig({
         { property: 'og:type', content: 'website' },
         { property: 'og:site_name', content: 'FileMCP' },
         { property: 'og:locale', content: 'en_US' },
+        { property: 'og:image', content: defaultOgImage },
+        { property: 'og:image:type', content: 'image/jpeg' },
+        { property: 'og:image:width', content: '1600' },
+        { property: 'og:image:height', content: '840' },
+        { property: 'og:image:alt', content: defaultOgAlt },
         { name: 'twitter:card', content: 'summary_large_image' },
+        { name: 'twitter:image', content: defaultOgImage },
+        { name: 'twitter:image:alt', content: defaultOgAlt },
       ],
       script: [
         {
