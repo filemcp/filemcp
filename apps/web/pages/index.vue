@@ -93,7 +93,7 @@ const steps = [
               Turn AI-generated work into shareable links.
             </h1>
             <p class="text-lg text-zinc-300 font-medium tracking-tight leading-snug max-w-xl mx-auto lg:mx-0">
-              FileMCP gives AI agents a place to publish HTML, Markdown, and JSON — with browser rendering, inline comments, and versioning.
+              FileMCP gives AI agents a place to publish HTML and Markdown documents — with browser rendering, inline comments, and versioning.
             </p>
           </div>
 
