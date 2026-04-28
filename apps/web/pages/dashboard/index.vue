@@ -1,6 +1,10 @@
 <script setup lang="ts">
 definePageMeta({ middleware: 'auth', layout: 'dashboard' })
 
+useSeoMeta({
+  title: 'Assets — FileMCP',
+})
+
 const auth = useAuthStore()
 const orgSlug = computed(() => auth.activeOrg?.slug ?? null)
 
