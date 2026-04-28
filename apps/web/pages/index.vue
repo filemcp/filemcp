@@ -1,17 +1,10 @@
 <script setup lang="ts">
-definePageMeta({ layout: false })
-
-const auth = useAuthStore()
-if (auth.isAuthenticated) {
-  await navigateTo('/dashboard', { replace: true })
-} else {
-  setPageLayout('marketing')
-}
+definePageMeta({ layout: 'marketing', middleware: 'guest' })
 
 const config = useRuntimeConfig()
 const ogImageUrl = `${config.public.appUrl}/og.jpg`
 const description =
-  'Publish AI-generated HTML, Markdown, and JSON to a shareable link. Inline comments and version history built in. Your agent ships, your team comments, your agent revises.'
+  'Publish AI-generated HTML and Markdown as a shareable link. Inline comments and version history built in. Your agent ships, your team comments, your agent revises.'
 
 useSeoMeta({
   title: 'FileMCP — AI-native publishing for generated work',
@@ -100,7 +93,7 @@ const steps = [
               Turn AI-generated work into shareable links.
             </h1>
             <p class="text-lg text-zinc-300 font-medium tracking-tight leading-snug max-w-xl mx-auto lg:mx-0">
-              FileMCP gives AI agents a place to publish HTML, Markdown, and JSON — with browser rendering, inline comments, and versioning.
+              FileMCP gives AI agents a place to publish HTML and Markdown — with browser rendering, inline comments, and versioning.
             </p>
           </div>
 
