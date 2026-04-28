@@ -53,9 +53,21 @@ build_and_push() {
   local env_tag="${ENVIRONMENT}-latest"
   local ts_tag="${ENVIRONMENT}-${TIMESTAMP}"
 
+  local build_args=()
+  if [ "$service" = "web" ]; then
+    # Baked into prerendered pages (e.g. og:image meta) — must be set at build time.
+    if [ -z "$NUXT_PUBLIC_APP_URL" ]; then
+      echo "Error: NUXT_PUBLIC_APP_URL must be set when building the web service" >&2
+      echo "  (it's baked into prerendered pages — set it to your public site URL, e.g. https://filemcp.com)" >&2
+      exit 1
+    fi
+    build_args+=(--build-arg "NUXT_PUBLIC_APP_URL=${NUXT_PUBLIC_APP_URL}")
+  fi
+
   echo "Building image..."
   docker build \
     -f "${SCRIPT_DIR}/${dockerfile}" \
+    "${build_args[@]}" \
     -t "${image}:${env_tag}" \
     -t "${image}:${ts_tag}" \
     "${SCRIPT_DIR}"
