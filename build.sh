@@ -53,9 +53,20 @@ build_and_push() {
   local env_tag="${ENVIRONMENT}-latest"
   local ts_tag="${ENVIRONMENT}-${TIMESTAMP}"
 
+  local build_args=()
+  if [ "$service" = "web" ]; then
+    # Baked into prerendered pages (e.g. og:image meta) — must be set at build time.
+    if [ "$ENVIRONMENT" = "production" ]; then
+      build_args+=(--build-arg "NUXT_PUBLIC_APP_URL=https://filemcp.com")
+    else
+      build_args+=(--build-arg "NUXT_PUBLIC_APP_URL=https://staging.filemcp.com")
+    fi
+  fi
+
   echo "Building image..."
   docker build \
     -f "${SCRIPT_DIR}/${dockerfile}" \
+    "${build_args[@]}" \
     -t "${image}:${env_tag}" \
     -t "${image}:${ts_tag}" \
     "${SCRIPT_DIR}"
