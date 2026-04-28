@@ -11,7 +11,7 @@ const TOOLS = [
   {
     name: 'upload_asset',
     description:
-      'Upload a file to filemcp and get back a shareable URL. Returns a curl command — run it with Bash to perform the upload. Supports HTML, Markdown, JSON, CSS, JS, SVG, and plain text. Requires WRITE or OWNER role. Maximum file size: 5MB.',
+      'Upload a file to filemcp and get a shareable URL. BEFORE calling this tool you MUST read filemcp.json using the Read tool (even if you think it does not exist — attempt the read regardless). If the manifest_key is already listed in filemcp.json, pass that UUID as existing_uuid to version the existing asset. Returns a curl command to run. After the curl succeeds, call register_asset, then use the Write tool to write the returned content to filemcp.json. Supports HTML, Markdown, JSON, CSS, JS, SVG, and plain text. Requires WRITE or OWNER role. Maximum file size: 5MB.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -23,8 +23,39 @@ const TOOLS = [
           type: 'string',
           description: 'Filename with extension, e.g. "deck.html". Used to detect the file type.',
         },
+        manifest_key: {
+          type: 'string',
+          description: 'Key to use in filemcp.json — path relative to the filemcp.json directory, e.g. "deck.html" or "folder/deck.html".',
+        },
+        existing_uuid: {
+          type: 'string',
+          description: 'UUID from filemcp.json for this manifest_key, if it exists. Omit for a new asset.',
+        },
       },
-      required: ['filepath', 'filename'],
+      required: ['filepath', 'filename', 'manifest_key'],
+    },
+  },
+  {
+    name: 'register_asset',
+    description:
+      'Add or update an entry in filemcp.json. Call this after a successful upload. Pass the current filemcp.json contents as current_manifest if the file exists — all existing entries are preserved. Returns the complete file content to write to filemcp.json.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        manifest_key: {
+          type: 'string',
+          description: 'Key for this asset in filemcp.json, relative to the filemcp.json directory, e.g. "deck.html" or "folder/deck.html".',
+        },
+        uuid: {
+          type: 'string',
+          description: 'Asset UUID from the upload response.',
+        },
+        current_manifest: {
+          type: 'object',
+          description: 'Current parsed contents of filemcp.json, if the file exists.',
+        },
+      },
+      required: ['manifest_key', 'uuid'],
     },
   },
   {
@@ -152,16 +183,20 @@ export class McpService {
         throw new Error('Your API key has read-only access. Upload requires WRITE or OWNER role.')
       }
 
-      const { filepath, filename } = args
+      const { filepath, filename, manifest_key, existing_uuid } = args
       const ext = filename.split('.').pop()?.toLowerCase() ?? 'txt'
       const mime = MIME_TYPES[ext] ?? 'text/plain'
       const token = req.headers.authorization
       const apiBase = `${this.config.get('API_URL')}/api`
-
       const mcpMaxMb = this.config.get<number>('MCP_MAX_FILE_SIZE_MB', 5)
-      const cmd = `curl -s -X POST "${apiBase}/orgs/${orgSlug}/assets" -H "Authorization: ${token}" -H "X-Upload-Source: mcp" -F "file=@${filepath};type=${mime}"`
 
-      console.log('[MCP] upload_asset curl', { filepath, filename, orgSlug })
+      const { randomUUID } = await import('crypto')
+      const asset_uuid = existing_uuid ?? randomUUID()
+      const isNew = !existing_uuid
+
+      const cmd = `curl -s -X POST "${apiBase}/orgs/${orgSlug}/assets/${asset_uuid}/versions" -H "Authorization: ${token}" -H "X-Upload-Source: mcp" -F "file=@${filepath};type=${mime}"`
+
+      console.log('[MCP] upload_asset curl', { filepath, filename, orgSlug, asset_uuid, isNew })
 
       return {
         content: [
@@ -172,15 +207,15 @@ export class McpService {
               '',
               cmd,
               '',
+              isNew ? `New asset — UUID: ${asset_uuid}` : `New version of existing asset — UUID: ${asset_uuid}`,
+              `Asset UUID: ${asset_uuid}`,
+              '',
               'The JSON response will contain these sharing links:',
               '  url            — comment mode (default, viewers can leave inline notes)',
               '  url + ?mode=view — view-only (comments hidden)',
               '  versionUrl     — pinned to this exact version (permanent)',
               '',
-              'Example: if url is https://filemcp.io/u/org/abc123',
-              '  Comment mode : https://filemcp.io/u/org/abc123',
-              '  View mode    : https://filemcp.io/u/org/abc123?mode=view',
-              '  Versioned    : https://filemcp.io/u/org/abc123/v/1 (from versionUrl)',
+              `After the curl succeeds, call register_asset with manifest_key="${manifest_key}", uuid="${asset_uuid}", and the current filemcp.json contents if the file exists.`,
             ].join('\n'),
           },
         ],
@@ -274,6 +309,19 @@ export class McpService {
 
       return {
         content: [{ type: 'text', text: this.formatComments(asset.title, slug, comments) }],
+      }
+    }
+
+    if (name === 'register_asset') {
+      const { manifest_key, uuid, current_manifest } = args
+      const existing = current_manifest && typeof current_manifest === 'object' ? current_manifest : {}
+      const updated = {
+        version: 1,
+        assets: { ...(existing.assets ?? {}), [manifest_key]: uuid },
+      }
+      const json = JSON.stringify(updated, null, 2) + '\n'
+      return {
+        content: [{ type: 'text', text: `Write this content to filemcp.json:\n\n${json}` }],
       }
     }
 
