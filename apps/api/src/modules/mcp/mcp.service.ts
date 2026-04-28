@@ -11,7 +11,7 @@ const TOOLS = [
   {
     name: 'upload_asset',
     description:
-      'Upload a file to filemcp and get a shareable URL. BEFORE calling this tool you MUST read filemcp.json using the Read tool (even if you think it does not exist — attempt the read regardless). If the manifest_key is already listed in filemcp.json, pass that UUID as existing_uuid to version the existing asset. Returns a curl command to run. After the curl succeeds, call register_asset, then use the Write tool to write the returned content to filemcp.json. Supports HTML, Markdown, JSON, CSS, JS, SVG, and plain text. Requires WRITE or OWNER role. Maximum file size: 5MB.',
+      'Upload a file to filemcp and get a shareable URL. BEFORE calling this tool you MUST read filemcp.json using the Read tool (even if you think it does not exist — attempt the read regardless). If the manifest_key is already listed in filemcp.json, pass that UUID as existing_uuid to version the existing asset. Returns a curl command to run. After the curl succeeds, call register_asset, then use the Write tool to write the returned content to filemcp.json. Supports HTML and Markdown. Requires WRITE or OWNER role. Maximum file size: 5MB.',
     inputSchema: {
       type: 'object',
       properties: {
