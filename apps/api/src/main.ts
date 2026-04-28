@@ -1,11 +1,16 @@
 import { NestFactory } from '@nestjs/core'
-import { ValidationPipe } from '@nestjs/common'
+import { ValidationPipe, Logger } from '@nestjs/common'
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger'
 import cookieParser from 'cookie-parser'
 import { AppModule } from './app.module'
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule)
+  const isDev = !['production', 'staging'].includes(process.env.NODE_ENV ?? '')
+  const app = await NestFactory.create(AppModule, {
+    logger: isDev
+      ? ['log', 'warn', 'error', 'debug', 'verbose']
+      : ['log', 'warn', 'error'],
+  })
 
   app.setGlobalPrefix('api')
   app.use(cookieParser())
@@ -38,7 +43,7 @@ async function bootstrap() {
 
   const port = process.env.PORT ?? 4000
   await app.listen(port, '0.0.0.0')
-  console.log(`API running on http://localhost:${port}`)
+  new Logger('Bootstrap').log(`API running on http://localhost:${port}`)
 }
 
 bootstrap()

@@ -52,102 +52,6 @@ export class AssetsService {
     private email: EmailService,
   ) {}
 
-  async upload(
-    orgId: string,
-    userId: string,
-    file: { buffer: Buffer; mimetype: string; originalname: string; size: number },
-    dto: UploadAssetDto,
-    options?: { maxBytes?: number },
-  ) {
-    const maxBytes = options?.maxBytes ?? DEFAULT_MAX_FILE_SIZE
-    if (file.size > maxBytes) {
-      const mb = Math.round(maxBytes / (1024 * 1024))
-      throw new PayloadTooLargeException(`File exceeds ${mb}MB limit`)
-    }
-
-    const fileType = MIME_TO_FILE_TYPE[file.mimetype]
-    if (!fileType) {
-      throw new BadRequestException(`Unsupported file type: ${file.mimetype}`)
-    }
-
-    const org = await this.prisma.organization.findUniqueOrThrow({ where: { id: orgId } })
-    const ext = FILE_TYPE_EXTENSION[fileType]
-    const baseName = file.originalname.replace(/\.[^.]+$/, '')
-    const slug = `${slugify(baseName)}-${ext}` || generateSlug()
-
-    // Enforce org asset limit
-    const existingAsset = await this.prisma.asset.findUnique({ where: { orgId_slug: { orgId, slug } } })
-    if (!existingAsset) {
-      const [assetCount, memberCount] = await Promise.all([
-        this.prisma.asset.count({ where: { orgId } }),
-        this.prisma.orgMember.count({ where: { orgId } }),
-      ])
-      const baseLimit = parseInt(this.config.get('ORG_ASSET_LIMIT', '10'), 10)
-      const perMember = parseInt(this.config.get('ORG_ASSET_LIMIT_PER_MEMBER', '5'), 10)
-      const limit = baseLimit + Math.max(0, memberCount - 1) * perMember
-      if (assetCount >= limit) {
-        throw new ForbiddenException(
-          `Asset limit reached (${limit}). Invite more members to unlock additional assets (+${perMember} per member).`,
-        )
-      }
-    }
-
-    const asset = await this.prisma.asset.upsert({
-      where: { orgId_slug: { orgId, slug } },
-      create: { orgId, slug, title: dto.title ?? file.originalname.replace(/\.[^.]+$/, ''), visibility: dto.visibility },
-      update: { updatedAt: new Date() },
-    })
-
-    const lastVersion = await this.prisma.version.findFirst({
-      where: { assetId: asset.id },
-      orderBy: { number: 'desc' },
-    })
-    const versionNumber = (lastVersion?.number ?? 0) + 1
-
-    const originalKey = this.storage.assetKey(orgId, asset.id, versionNumber, `original.${ext}`)
-    await this.storage.upload(originalKey, file.buffer, file.mimetype)
-
-    let renderedPath: string | undefined
-    if (fileType === FileType.MARKDOWN) {
-      const html = await this.render.markdownToHtml(file.buffer.toString('utf8'))
-      const renderedKey = this.storage.assetKey(orgId, asset.id, versionNumber, 'rendered.html')
-      await this.storage.upload(renderedKey, Buffer.from(html), 'text/html')
-      renderedPath = renderedKey
-    }
-
-    const version = await this.prisma.version.create({
-      data: {
-        assetId: asset.id,
-        number: versionNumber,
-        fileType,
-        storagePath: originalKey,
-        sizeBytes: file.size,
-        description: dto.description,
-        renderedPath,
-      },
-    })
-
-    const thumbnailKey = this.storage.assetKey(orgId, asset.id, versionNumber, 'thumbnail.jpg')
-    await this.thumbnail.enqueue({
-      versionId: version.id,
-      contentKey: renderedPath ?? originalKey,
-      thumbnailKey,
-    })
-
-    const appUrl = process.env.APP_URL ?? 'http://localhost:3000'
-
-    return {
-      assetId: asset.id,
-      slug: asset.slug,
-      uuid: asset.uuid,
-      version: version.number,
-      url: `${appUrl}/u/${org.slug}/${asset.uuid}`,
-      versionUrl: `${appUrl}/u/${org.slug}/${asset.uuid}/v/${version.number}`,
-      fileType: version.fileType,
-      sizeBytes: version.sizeBytes,
-    }
-  }
-
   async listByOrg(orgId: string, page: number, limit: number) {
     const [items, total] = await Promise.all([
       this.prisma.asset.findMany({
@@ -237,6 +141,111 @@ export class AssetsService {
       note: opts.note,
       viewMode: opts.mode,
     })
+  }
+
+  async uploadVersion(
+    orgId: string,
+    userId: string,
+    uuid: string,
+    file: { buffer: Buffer; mimetype: string; originalname: string; size: number },
+    dto: UploadAssetDto,
+    options?: { maxBytes?: number },
+  ) {
+    const maxBytes = options?.maxBytes ?? DEFAULT_MAX_FILE_SIZE
+    if (file.size > maxBytes) {
+      const mb = Math.round(maxBytes / (1024 * 1024))
+      throw new PayloadTooLargeException(`File exceeds ${mb}MB limit`)
+    }
+
+    const fileType = MIME_TO_FILE_TYPE[file.mimetype]
+    if (!fileType) {
+      throw new BadRequestException(`Unsupported file type: ${file.mimetype}`)
+    }
+
+    const include = { org: { select: { slug: true } } } as const
+    type AssetWithOrg = NonNullable<Awaited<ReturnType<typeof this.prisma.asset.findUnique<{ where: { uuid: string }; include: typeof include }>>>>
+
+    let asset: AssetWithOrg
+
+    const existing = await this.prisma.asset.findUnique({ where: { uuid }, include })
+    if (existing) {
+      if (existing.orgId !== orgId) throw new ForbiddenException()
+      asset = existing
+    } else {
+      const [assetCount, memberCount] = await Promise.all([
+        this.prisma.asset.count({ where: { orgId } }),
+        this.prisma.orgMember.count({ where: { orgId } }),
+      ])
+      const baseLimit = parseInt(this.config.get('ORG_ASSET_LIMIT', '10'), 10)
+      const perMember = parseInt(this.config.get('ORG_ASSET_LIMIT_PER_MEMBER', '5'), 10)
+      const limit = baseLimit + Math.max(0, memberCount - 1) * perMember
+      if (assetCount >= limit) {
+        throw new ForbiddenException(
+          `Asset limit reached (${limit}). Invite more members to unlock additional assets (+${perMember} per member).`,
+        )
+      }
+
+      const ext = FILE_TYPE_EXTENSION[fileType]
+      const baseName = file.originalname.replace(/\.[^.]+$/, '')
+      const slug = `${slugify(baseName)}-${ext}` || generateSlug()
+      asset = await this.prisma.asset.create({
+        data: { uuid, orgId, slug, title: dto.title ?? baseName, visibility: dto.visibility },
+        include,
+      })
+    }
+
+    const ext = FILE_TYPE_EXTENSION[fileType]
+
+    const lastVersion = await this.prisma.version.findFirst({
+      where: { assetId: asset.id },
+      orderBy: { number: 'desc' },
+    })
+    const versionNumber = (lastVersion?.number ?? 0) + 1
+
+    const originalKey = this.storage.assetKey(orgId, asset.id, versionNumber, `original.${ext}`)
+    await this.storage.upload(originalKey, file.buffer, file.mimetype)
+
+    let renderedPath: string | undefined
+    if (fileType === FileType.MARKDOWN) {
+      const html = await this.render.markdownToHtml(file.buffer.toString('utf8'))
+      const renderedKey = this.storage.assetKey(orgId, asset.id, versionNumber, 'rendered.html')
+      await this.storage.upload(renderedKey, Buffer.from(html), 'text/html')
+      renderedPath = renderedKey
+    }
+
+    const version = await this.prisma.version.create({
+      data: {
+        assetId: asset.id,
+        number: versionNumber,
+        fileType,
+        storagePath: originalKey,
+        sizeBytes: file.size,
+        description: dto.description,
+        renderedPath,
+      },
+    })
+
+    await this.prisma.asset.update({ where: { id: asset.id }, data: { updatedAt: new Date() } })
+
+    const thumbnailKey = this.storage.assetKey(orgId, asset.id, versionNumber, 'thumbnail.jpg')
+    await this.thumbnail.enqueue({
+      versionId: version.id,
+      contentKey: renderedPath ?? originalKey,
+      thumbnailKey,
+    })
+
+    const appUrl = this.config.get('APP_URL', 'http://localhost:3000')
+
+    return {
+      assetId: asset.id,
+      slug: asset.slug,
+      uuid: asset.uuid,
+      version: version.number,
+      url: `${appUrl}/u/${asset.org.slug}/${asset.uuid}`,
+      versionUrl: `${appUrl}/u/${asset.org.slug}/${asset.uuid}/v/${version.number}`,
+      fileType: version.fileType,
+      sizeBytes: version.sizeBytes,
+    }
   }
 
   async delete(orgId: string, assetId: string) {

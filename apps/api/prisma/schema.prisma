@@ -121,7 +121,7 @@ model Asset {
   versions Version[]
   comments Comment[]
 
-  @@unique([orgId, slug])
+  @@index([orgId, slug])
 }
 
 model Version {
