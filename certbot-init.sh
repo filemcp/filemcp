@@ -31,6 +31,11 @@ sudo openssl req -x509 -nodes -newkey rsa:2048 -days 1 \
 echo "Starting nginx..."
 cd /srv/docker && docker compose up -d nginx
 
+echo "Removing any existing certs so Let's Encrypt uses the canonical path..."
+sudo rm -rf "$CERTBOT_CERTS/live/$CERT_NAME" "$CERTBOT_CERTS/live/$CERT_NAME-0001"
+sudo rm -rf "$CERTBOT_CERTS/archive/$CERT_NAME" "$CERTBOT_CERTS/archive/$CERT_NAME-0001"
+sudo rm -f "$CERTBOT_CERTS/renewal/$CERT_NAME.conf" "$CERTBOT_CERTS/renewal/$CERT_NAME-0001.conf"
+
 echo "Requesting cert from Let's Encrypt..."
 docker run --rm \
   -v "$CERTBOT_WWW:/var/www/certbot" \
@@ -41,6 +46,7 @@ docker run --rm \
   --email "$EMAIL" \
   --agree-tos \
   --no-eff-email \
+  --force-renewal \
   $DOMAINS
 
 echo "Reloading nginx..."
