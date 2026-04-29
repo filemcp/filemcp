@@ -22,8 +22,8 @@ CERTBOT_WWW=$(docker volume inspect docker_certbot_www --format '{{ .Mountpoint 
 CERTBOT_CERTS=$(docker volume inspect docker_certbot_certs --format '{{ .Mountpoint }}')
 
 echo "Creating dummy cert so nginx can start..."
-mkdir -p "$CERTBOT_CERTS/live/$CERT_NAME"
-openssl req -x509 -nodes -newkey rsa:2048 -days 1 \
+sudo mkdir -p "$CERTBOT_CERTS/live/$CERT_NAME"
+sudo openssl req -x509 -nodes -newkey rsa:2048 -days 1 \
   -keyout "$CERTBOT_CERTS/live/$CERT_NAME/privkey.pem" \
   -out "$CERTBOT_CERTS/live/$CERT_NAME/fullchain.pem" \
   -subj "/CN=localhost" 2>/dev/null

@@ -65,7 +65,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 remote_exec() {
   local command="$1"
-  ssh -i "$SSH_KEY_PATH" -o StrictHostKeyChecking=no "$SSH_USERNAME@$TARGET_HOST" "bash -c '$command'"
+  ssh -i "$SSH_KEY_PATH" -o StrictHostKeyChecking=no "$SSH_USERNAME@$TARGET_HOST" "bash -c 'if command -v docker-compose &>/dev/null; then DC=docker-compose; else DC=\"docker compose\"; fi; $command'"
 }
 
 echo "========== Releasing to $ENVIRONMENT ($TARGET_HOST) =========="
@@ -100,7 +100,7 @@ remote_exec "cat > /srv/docker/docker-compose.yml" < "$processed_compose"
 echo "Copying nginx config to $TARGET_HOST..."
 remote_exec "mkdir -p /srv/docker/nginx"
 remote_exec "cat > /srv/docker/nginx/default.conf" < "${SCRIPT_DIR}/nginx/${ENVIRONMENT}.conf"
-remote_exec "cd /srv/docker && docker compose exec nginx nginx -s reload 2>/dev/null || true"
+remote_exec "cd /srv/docker && $DC exec nginx nginx -s reload 2>/dev/null || true"
 
 echo "Copying certbot-init script to $TARGET_HOST..."
 remote_exec "cat > /srv/docker/certbot-init.sh" < "${SCRIPT_DIR}/certbot-init.sh"
@@ -128,20 +128,20 @@ fi
 echo "Pulling images..."
 for service in "${SERVICES[@]}"; do
   echo "Pulling $service..."
-  remote_exec "cd /srv/docker && $AWS_ENV docker compose pull $service"
+  remote_exec "cd /srv/docker && $AWS_ENV $DC pull $service"
 done
 
 echo "Starting services..."
 services_str="${SERVICES[*]}"
-remote_exec "cd /srv/docker && $AWS_ENV docker compose up -d $services_str"
+remote_exec "cd /srv/docker && $AWS_ENV $DC up -d $services_str"
 
 echo "Service status:"
-remote_exec "cd /srv/docker && docker compose ps"
+remote_exec "cd /srv/docker && $DC ps"
 
 echo "Recent logs:"
 for service in "${SERVICES[@]}"; do
   echo "--- $service ---"
-  remote_exec "cd /srv/docker && docker compose logs --tail=20 $service"
+  remote_exec "cd /srv/docker && $DC logs --tail=20 $service"
 done
 
 # Clean up old ECR images on remote host
