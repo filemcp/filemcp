@@ -63,9 +63,11 @@ fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+DC="docker compose"
+
 remote_exec() {
   local command="$1"
-  ssh -i "$SSH_KEY_PATH" -o StrictHostKeyChecking=no "$SSH_USERNAME@$TARGET_HOST" "bash -c 'if command -v docker-compose &>/dev/null; then DC=docker-compose; else DC=\"docker compose\"; fi; $command'"
+  ssh -i "$SSH_KEY_PATH" -o StrictHostKeyChecking=no "$SSH_USERNAME@$TARGET_HOST" "bash -c '$command'"
 }
 
 echo "========== Releasing to $ENVIRONMENT ($TARGET_HOST) =========="
