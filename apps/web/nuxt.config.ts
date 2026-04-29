@@ -1,6 +1,7 @@
 const appUrl = process.env.NUXT_PUBLIC_APP_URL ?? process.env.APP_URL ?? ''
 const defaultOgImage = `${appUrl}/og.jpg`
 const defaultOgAlt = 'FileMCP — Turn AI-generated work into shareable links'
+const gaId = process.env.NUXT_PUBLIC_GA_ID ?? ''
 
 export default defineNuxtConfig({
   devtools: { enabled: false },
@@ -28,18 +29,15 @@ export default defineNuxtConfig({
         { name: 'twitter:image', content: defaultOgImage },
         { name: 'twitter:image:alt', content: defaultOgAlt },
       ],
-      script: [
+      script: gaId ? [
         {
-          src: 'https://www.googletagmanager.com/gtag/js?id=G-PWPG88HHHM',
+          src: `https://www.googletagmanager.com/gtag/js?id=${gaId}`,
           async: true,
         },
         {
-          innerHTML: `window.dataLayer = window.dataLayer || [];
-function gtag(){dataLayer.push(arguments);}
-gtag('js', new Date());
-gtag('config', 'G-PWPG88HHHM');`,
+          innerHTML: `window.dataLayer = window.dataLayer || [];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());gtag('config', '${gaId}');`,
         },
-      ],
+      ] : [],
     },
   },
 

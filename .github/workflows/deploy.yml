@@ -70,6 +70,7 @@ jobs:
       - name: Build & push Docker images
         env:
           NUXT_PUBLIC_APP_URL: ${{ vars.APP_URL }}
+          NUXT_PUBLIC_GA_ID: ${{ vars.GA_ID }}
         run: |
           SERVICE_FLAG=""
           [ -n "${{ github.event.inputs.service }}" ] && SERVICE_FLAG="--service=${{ github.event.inputs.service }}"
