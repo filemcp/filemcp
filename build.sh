@@ -62,6 +62,7 @@ build_and_push() {
       exit 1
     fi
     build_args+=(--build-arg "NUXT_PUBLIC_APP_URL=${NUXT_PUBLIC_APP_URL}")
+    build_args+=(--build-arg "NUXT_PUBLIC_GA_ID=${NUXT_PUBLIC_GA_ID}")
   fi
 
   echo "Building image..."

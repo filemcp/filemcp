@@ -22,14 +22,19 @@ CERTBOT_WWW=$(docker volume inspect docker_certbot_www --format '{{ .Mountpoint 
 CERTBOT_CERTS=$(docker volume inspect docker_certbot_certs --format '{{ .Mountpoint }}')
 
 echo "Creating dummy cert so nginx can start..."
-mkdir -p "$CERTBOT_CERTS/live/$CERT_NAME"
-openssl req -x509 -nodes -newkey rsa:2048 -days 1 \
+sudo mkdir -p "$CERTBOT_CERTS/live/$CERT_NAME"
+sudo openssl req -x509 -nodes -newkey rsa:2048 -days 1 \
   -keyout "$CERTBOT_CERTS/live/$CERT_NAME/privkey.pem" \
   -out "$CERTBOT_CERTS/live/$CERT_NAME/fullchain.pem" \
   -subj "/CN=localhost" 2>/dev/null
 
 echo "Starting nginx..."
 cd /srv/docker && docker compose up -d nginx
+
+echo "Removing any existing certs so Let's Encrypt uses the canonical path..."
+sudo rm -rf "$CERTBOT_CERTS/live/$CERT_NAME" "$CERTBOT_CERTS/live/$CERT_NAME-0001"
+sudo rm -rf "$CERTBOT_CERTS/archive/$CERT_NAME" "$CERTBOT_CERTS/archive/$CERT_NAME-0001"
+sudo rm -f "$CERTBOT_CERTS/renewal/$CERT_NAME.conf" "$CERTBOT_CERTS/renewal/$CERT_NAME-0001.conf"
 
 echo "Requesting cert from Let's Encrypt..."
 docker run --rm \
@@ -41,6 +46,7 @@ docker run --rm \
   --email "$EMAIL" \
   --agree-tos \
   --no-eff-email \
+  --force-renewal \
   $DOMAINS
 
 echo "Reloading nginx..."
