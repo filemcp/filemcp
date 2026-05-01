@@ -9,7 +9,7 @@
     "schema": "../api/prisma/schema.prisma"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.1037.0",
+    "@aws-sdk/client-s3": "^3.1040.0",
     "@prisma/client": "^6.0.0",
     "bullmq": "^5.76.2",
     "playwright": "1.59.1"
