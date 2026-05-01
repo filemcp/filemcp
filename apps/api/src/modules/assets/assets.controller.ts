@@ -54,7 +54,7 @@ export class AssetsController {
   @Post(':id/versions')
   @RequireOrgRole(OrgRole.WRITE)
   @ApiConsumes('multipart/form-data')
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 10 * 1024 * 1024 } }))
   uploadVersion(
     @Param('slug') _slug: string,
     @Param('id') uuid: string,
@@ -63,8 +63,9 @@ export class AssetsController {
     @Body() dto: UploadAssetDto,
     @Headers('x-upload-source') uploadSource?: string,
   ) {
+    const mcpMaxMb = this.config.get<number>('MCP_MAX_FILE_SIZE_MB', 5)
     const options = uploadSource === 'mcp'
-      ? { maxBytes: parseInt(this.config.get('MCP_MAX_FILE_SIZE_MB', '5'), 10) * 1024 * 1024 }
+      ? { maxBytes: (Number.isFinite(mcpMaxMb) ? mcpMaxMb : 5) * 1024 * 1024 }
       : undefined
     return this.assets.uploadVersion(req.user.orgId!, req.user.id, uuid, file, dto, options)
   }
