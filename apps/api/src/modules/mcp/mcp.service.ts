@@ -72,14 +72,24 @@ const TOOLS = [
   {
     name: 'get_asset',
     description:
-      'Download the content of an asset from filemcp. Returns the raw file content so you can read or edit it. Use this when you want to work on an existing asset.',
+      'Download the content of an asset from filemcp. BEFORE calling this tool you MUST read filemcp.json (even if you think it does not exist — attempt the read regardless). Pass manifest_key and current_manifest so the server can resolve the UUID from the local manifest. If the asset is not in the manifest the server will search by name and either return the content directly (one match) or a list of candidates for the user to choose from (multiple matches). After a successful download, use the Write tool to write the returned filemcp.json content to filemcp.json.',
     inputSchema: {
       type: 'object',
       properties: {
-        uuid: { type: 'string', description: 'Asset UUID' },
+        manifest_key: {
+          type: 'string',
+          description: 'Key to look up in filemcp.json — relative path, e.g. "deck.html" or "folder/report.html". Used to resolve the UUID from the manifest or search by name.',
+        },
+        uuid: {
+          type: 'string',
+          description: 'Asset UUID. Provide this to skip manifest/name resolution and fetch directly.',
+        },
         version: { type: 'number', description: 'Version number (omit for latest)' },
+        current_manifest: {
+          type: 'object',
+          description: 'Current parsed contents of filemcp.json, if the file exists.',
+        },
       },
-      required: ['uuid'],
     },
   },
   {
@@ -247,7 +257,56 @@ export class McpService {
     }
 
     if (name === 'get_asset') {
-      const { uuid, version } = args
+      const { version, manifest_key, current_manifest } = args
+      let { uuid } = args
+
+      // Resolve UUID from manifest if not provided directly
+      if (!uuid && manifest_key && current_manifest?.assets) {
+        uuid = current_manifest.assets[manifest_key]
+      }
+
+      // Fall back to name search if still no UUID
+      if (!uuid) {
+        if (!manifest_key) {
+          throw new Error('Provide either uuid or manifest_key to identify the asset.')
+        }
+
+        const result = await this.assets.listByOrg(orgId, 1, 50)
+        const key = manifest_key.toLowerCase()
+        const candidates = result.items.filter((a) => {
+          const slug = a.slug?.toLowerCase() ?? ''
+          const title = (a.title ?? '').toLowerCase()
+          return slug.includes(key) || key.includes(slug) || title.includes(key) || key.includes(title)
+        })
+
+        if (candidates.length === 0) {
+          return {
+            content: [{ type: 'text', text: `No assets found matching "${manifest_key}". Use list_assets to browse all available assets.` }],
+          }
+        }
+
+        if (candidates.length > 1) {
+          const lines = candidates.map(
+            (a, i) => `${i + 1}. ${a.slug} — "${a.title}" (v${a.latestVersion}) — UUID: ${a.uuid}`,
+          )
+          return {
+            content: [
+              {
+                type: 'text',
+                text: [
+                  `Multiple assets match "${manifest_key}". Ask the user which one they want:`,
+                  '',
+                  ...lines,
+                  '',
+                  'Then call get_asset again with the specific uuid.',
+                ].join('\n'),
+              },
+            ],
+          }
+        }
+
+        uuid = candidates[0].uuid
+      }
 
       const assetRecord = await this.prisma.asset.findUnique({
         where: { uuid },
@@ -260,6 +319,15 @@ export class McpService {
 
       const base = `${appUrl}/u/${orgSlug}/${assetRecord.uuid}`
       const resolvedVersion = version ?? assetRecord.versions[0]?.number
+
+      // Build updated manifest so the agent can write it back to filemcp.json
+      const existing = current_manifest && typeof current_manifest === 'object' ? current_manifest : {}
+      const effectiveKey = manifest_key ?? assetRecord.slug
+      const updatedManifest = {
+        version: 1,
+        assets: { ...(existing.assets ?? {}), [effectiveKey]: uuid },
+      }
+      const manifestJson = JSON.stringify(updatedManifest, null, 2) + '\n'
 
       return {
         content: [
@@ -275,6 +343,11 @@ export class McpService {
               `  Comment : ${base}`,
               `  View    : ${base}?mode=view`,
               ...(resolvedVersion ? [`  Pinned  : ${base}/v/${resolvedVersion}`] : []),
+              '',
+              '---',
+              `Write this content to filemcp.json:`,
+              '',
+              manifestJson,
             ].join('\n'),
           },
         ],
