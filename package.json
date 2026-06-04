@@ -15,7 +15,7 @@
     "test:web": "pnpm --filter @filemcp/web test"
   },
   "pnpm": {
-    "onlyBuiltDependencies": ["@prisma/client", "@prisma/engines", "prisma", "esbuild", "msgpackr-extract"]
+    "onlyBuiltDependencies": ["@prisma/client", "@prisma/engines", "prisma", "esbuild", "msgpackr-extract", "@nestjs/core", "@scarf/scarf"]
   },
   "devDependencies": {
     "concurrently": "^9.1.0",
