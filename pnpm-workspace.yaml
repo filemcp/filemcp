@@ -2,10 +2,12 @@ packages:
   - "apps/*"
   - "packages/*"
 onlyBuiltDependencies:
+  - "@nestjs/core"
+  - "@parcel/watcher"
   - "@prisma/client"
   - "@prisma/engines"
-  - prisma
+  - "@scarf/scarf"
   - esbuild
   - msgpackr-extract
-  - "@nestjs/core"
-  - "@scarf/scarf"
+  - prisma
+  - vue-demi
