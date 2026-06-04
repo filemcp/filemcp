@@ -35,7 +35,7 @@
     "class-validator": "^0.15.1",
     "cookie-parser": "^1.4.7",
     "mjml": "^5.1.0",
-    "nanoid": "^5.0.0",
+    "nanoid": "^5.1.11",
     "passport": "^0.7.0",
     "passport-custom": "^1.1.1",
     "passport-jwt": "^4.0.1",
