@@ -11,8 +11,8 @@ export class UsersController {
   @Get('users/me')
   @UseGuards(AnyAuthGuard)
   @ApiBearerAuth()
-  getMe(@Request() req: { user: { id: string } }) {
-    return this.users.getMe(req.user.id)
+  getMe(@Request() req: { user: { id: string; orgSlug?: string } }) {
+    return this.users.getMe(req.user.id).then((me) => ({ ...me, activeOrgSlug: req.user.orgSlug ?? null }))
   }
 
   @Get('users/:username')
