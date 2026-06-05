@@ -302,6 +302,7 @@ export class AssetsService {
       title: asset.title ?? asset.slug,
       owner: { org: asset.org.slug },
       latestVersion: asset.versions[0]?.number ?? 1,
+      versionNumbers: asset.versions.map((v) => v.number),
       currentVersion: {
         id: targetVersion.id,
         number: targetVersion.number,

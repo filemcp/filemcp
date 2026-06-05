@@ -71,7 +71,16 @@ function dismissNudge() {
     class="absolute z-50 w-72 bg-zinc-900 border border-zinc-700 rounded-xl shadow-xl p-4 space-y-3"
     :style="{ left, top }"
     @click.stop
+    @keydown.escape="$emit('cancel')"
   >
+    <!-- Close button - top left -->
+    <button
+      class="absolute top-2 left-2 text-zinc-500 hover:text-zinc-300 transition"
+      @click="$emit('cancel')"
+    >
+      ✕
+    </button>
+
     <!-- Nudge state -->
     <template v-if="nudge">
       <p class="text-sm text-zinc-300 font-medium">Comment posted!</p>
@@ -127,12 +136,6 @@ function dismissNudge() {
           @click="submit"
         >
           {{ submitting ? 'Posting…' : 'Post comment' }}
-        </button>
-        <button
-          class="px-3 text-zinc-500 hover:text-zinc-300 transition"
-          @click="$emit('cancel')"
-        >
-          ✕
         </button>
       </div>
     </template>

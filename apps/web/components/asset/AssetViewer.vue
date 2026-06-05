@@ -10,6 +10,7 @@ const props = defineProps<{
     title: string
     owner: { org: string }
     latestVersion: number
+    versionNumbers: number[]
     currentVersion: {
       id: string
       number: number
@@ -51,8 +52,25 @@ function handleViewerClick(event: { xPct: number; yPct: number; viewXPct: number
   commentStore.setPendingAnchor(event)
 }
 
-onMounted(() => commentStore.setPendingAnchor(null))
-onUnmounted(() => commentStore.setPendingAnchor(null))
+function handleKeydown(e: KeyboardEvent) {
+  if (e.key === 'Escape') {
+    if (commentStore.pendingAnchor) {
+      commentStore.setPendingAnchor(null)
+    } else if (commentStore.commentMode) {
+      panelOpen.value = false
+      commentStore.commentMode = false
+    }
+  }
+}
+
+onMounted(() => {
+  commentStore.setPendingAnchor(null)
+  window.addEventListener('keydown', handleKeydown)
+})
+onUnmounted(() => {
+  commentStore.setPendingAnchor(null)
+  window.removeEventListener('keydown', handleKeydown)
+})
 
 const htmlRendererRef = ref<{ print: () => void } | null>(null)
 const shareOpen = ref(false)
@@ -94,7 +112,7 @@ function printAsset() {
           :value="asset.currentVersion.number"
           @change="(e) => navigateTo(`/u/${asset.owner.org}/${asset.uuid}/v/${(e.target as HTMLSelectElement).value}`)"
         >
-          <option v-for="v in asset.latestVersion" :key="v" :value="v">v{{ v }}</option>
+          <option v-for="v in asset.versionNumbers" :key="v" :value="v">v{{ v }}</option>
         </select>
 
         <!-- Share button -->
